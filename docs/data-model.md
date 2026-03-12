@@ -65,5 +65,7 @@ Represents forms that can be added to a contact or organisation to store custom 
 | DateTime1 | datetime2 | Yes | | | |
 | DateTime2 | datetime2 | Yes | | | |
 
-
+## Relatiionships
+| From | To | Type | Notes |
+|---|---|---|---|
 
