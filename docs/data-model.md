@@ -57,7 +57,7 @@ Represents forms that can be added to a contact or organisation to store custom 
 |------|------|------|------|------|------|
 | Id | uniqueidentifier | No | PK | | Primary key |
 | ClientId | uniqueidentifier | No | FK → Clients.Id | | Client owner |
-| FormTypeId | uniqueidentifier | Yes | FK → FormTypes.Id | | The FormType definition |
+| FormTypeId | uniqueidentifier | No | FK → FormTypes.Id | | The FormType definition |
 | OrganisationId | uniqueidentifier | Yes | FK → Organisations.Id | | Organisation owner |
 | ContactId | uniqueidentifier | Yes | FK → Contacts.Id | | Contact owner |
 | Text1 | nvarchar(max) | Yes | | | |
@@ -73,7 +73,10 @@ Represents forms that can be added to a contact or organisation to store custom 
 | Contacts.OrganisationId | Organisations.Id | Many-to-One | A contact optionally belongs to one organisation |
 | FormTypes.ClientId | Clients.Id | Many-to-One | A form type belongs to one client |
 | Forms.ClientId | Clients.Id | Many-to-One | A form belongs to one client |
-| Forms.FormTypeId | FormTypes.Id | Many-to-One | A form optionally references one form type definition |
+| Forms.FormTypeId | FormTypes.Id | Many-to-One | A form references one form type definition |
 | Forms.OrganisationId | Organisations.Id | Many-to-One | A form optionally belongs to one organisation |
 | Forms.ContactId | Contacts.Id | Many-to-One | A form optionally belongs to one contact |
+
+## Indexes
+
 
