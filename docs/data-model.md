@@ -6,7 +6,7 @@ This system supports clients(tenants), organisations, contacts and forms for a m
 
 ## Conventions and assumptions
 - The database will be Azure SQL Server
-- All tables use `Id` as PK unless otherwise stated
+- All tables use `Id` as an `int IDENTITY(1,1)` PK unless otherwise stated
 - All client-owned tables include `ClientId`
 - Soft delete uses `DeletedUtc`
 - Audit fields: `CreatedUtc`, `CreatedBy`, `ModifiedUtc`, `ModifiedBy`. Automatically include these when creating new tables.
@@ -18,7 +18,7 @@ Represents the organisations that are using the system. Each client will have ma
 
 | Column | Type | Nullable | Key | Default | Notes |
 |------|------|------|------|------|------|
-| Id | uniqueidentifier | No | PK | | Primary key |
+| Id | int | No | PK | IDENTITY(1,1) | Primary key |
 | Name | nvarchar(200) | No | | | Display name |
 | Postcode | nvarchar(12) | Yes | | | |
 
@@ -27,8 +27,8 @@ Represent the organisations that a client is dealing with.
 
 | Column | Type | Nullable | Key | Default | Notes |
 |------|------|------|------|------|------|
-| Id | uniqueidentifier | No | PK | | Primary key |
-| ClientId | uniqueidentifier | No | FK → Clients.Id | | Client owner |
+| Id | int | No | PK | IDENTITY(1,1) | Primary key |
+| ClientId | int | No | FK → Clients.Id | | Client owner |
 | Name | nvarchar(100) | No | | | Display name |
 | Postcode | nvarchar(12) | Yes | | | |
 
@@ -36,9 +36,9 @@ Represent the organisations that a client is dealing with.
 Represents the contacts of the CRM system
 | Column | Type | Nullable | Key | Default | Notes |
 |------|------|------|------|------|------|
-| Id | uniqueidentifier | No | PK | | Primary key |
-| ClientId | uniqueidentifier | No | FK → Clients.Id | | Client owner |
-| OrganisationId | uniqueidentifier | Yes | FK → Organisations.Id | | Organisation owner |
+| Id | int | No | PK | IDENTITY(1,1) | Primary key |
+| ClientId | int | No | FK → Clients.Id | | Client owner |
+| OrganisationId | int | Yes | FK → Organisations.Id | | Organisation owner |
 | FirstName | nvarchar(50) | Yes | | | |
 | LastName | nvarchar(50) | Yes | | | |
 | Email | nvarchar(60) | Yes | | | |
@@ -48,19 +48,19 @@ Represents the contacts of the CRM system
 Represents the definition form forms
 | Column | Type | Nullable | Key | Default | Notes |
 |------|------|------|------|------|------|
-| Id | uniqueidentifier | No | PK | | Primary key |
-| ClientId | uniqueidentifier | No | FK → Clients.Id | | Client owner |
+| Id | int | No | PK | IDENTITY(1,1) | Primary key |
+| ClientId | int | No | FK → Clients.Id | | Client owner |
 | Name | nvarchar(max) | Yes | | | |
 
 ### Forms
 Represents forms that can be added to a contact or organisation to store custom information
 | Column | Type | Nullable | Key | Default | Notes |
 |------|------|------|------|------|------|
-| Id | uniqueidentifier | No | PK | | Primary key |
-| ClientId | uniqueidentifier | No | FK → Clients.Id | | Client owner |
-| FormTypeId | uniqueidentifier | No | FK → FormTypes.Id | | The FormType definition |
-| OrganisationId | uniqueidentifier | Yes | FK → Organisations.Id | | Organisation owner |
-| ContactId | uniqueidentifier | Yes | FK → Contacts.Id | | Contact owner |
+| Id | int | No | PK | IDENTITY(1,1) | Primary key |
+| ClientId | int | No | FK → Clients.Id | | Client owner |
+| FormTypeId | int | No | FK → FormTypes.Id | | The FormType definition |
+| OrganisationId | int | Yes | FK → Organisations.Id | | Organisation owner |
+| ContactId | int | Yes | FK → Contacts.Id | | Contact owner |
 | Text1 | nvarchar(max) | Yes | | | |
 | Text2 | nvarchar(max) | Yes | | | |
 | DateTime1 | datetime2 | Yes | | | |
