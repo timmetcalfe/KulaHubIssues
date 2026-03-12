@@ -79,4 +79,14 @@ Represents forms that can be added to a contact or organisation to store custom 
 
 ## Indexes
 
-
+| Index Name | Table | Columns | Notes |
+|---|---|---|---|
+| IX_Organisations_ClientId | Organisations | ClientId | Filter organisations by client |
+| IX_Contacts_ClientId | Contacts | ClientId | Filter contacts by client |
+| IX_Contacts_Email | Contacts | Email | Look up contacts by email address |
+| IX_Contacts_OrganisationId | Contacts | OrganisationId | Filter contacts by organisation |
+| IX_FormTypes_ClientId | FormTypes | ClientId | Filter form types by client |
+| IX_Forms_ClientId | Forms | ClientId | Filter forms by client |
+| IX_Forms_FormTypeId | Forms | FormTypeId | Filter forms by form type |
+| IX_Forms_OrganisationId | Forms | OrganisationId | Filter forms by organisation |
+| IX_Forms_ContactId | Forms | ContactId | Filter forms by contact |
