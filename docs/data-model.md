@@ -73,10 +73,10 @@ Represents forms that can be added to a contact or organisation to store custom 
 | Contacts.ClientId | Clients.Id | Many-to-One | A contact belongs to one client |
 | Contacts.OrganisationId | Organisations.Id | Many-to-One | A contact optionally belongs to one organisation |
 | FormTypes.ClientId | Clients.Id | Many-to-One | A form type belongs to one client |
-| Forms.ClientId | Clients.Id | Many-to-One | A form belongs to one client |
-| Forms.FormTypeId | FormTypes.Id | Many-to-One | A form references one form type definition |
-| Forms.OrganisationId | Organisations.Id | Many-to-One | A form optionally belongs to one organisation |
-| Forms.ContactId | Contacts.Id | Many-to-One | A form optionally belongs to one contact |
+| Forms.ClientId | Clients.Id | Many-to-One | A form belongs to one client. If the form is deleted, do not cascade the delete |
+| Forms.FormTypeId | FormTypes.Id | Many-to-One | A form references one form type definition. If the form is deleted, do not cascade the delete |
+| Forms.OrganisationId | Organisations.Id | Many-to-One | A form optionally belongs to one organisation. If form deleted, do not cascade the delete |
+| Forms.ContactId | Contacts.Id | Many-to-One | A form optionally belongs to one contact. If the form is deleted, do not cascade the delete |
 
 ## Indexes
 
