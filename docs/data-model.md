@@ -6,7 +6,7 @@ This system supports clients(tenants), organisations, contacts, forms, and form 
 
 ## Conventions and assumptions
 - The database will be Azure SQL Server
-- All tables use `EntityId` as an `int IDENTITY(1,1)` PK unless otherwise stated, where Entity is the table name
+- All tables use `EntityId` as an `int IDENTITY(1,1)` PK unless otherwise stated, where Entity is the singular table name
 - All client-owned tables include `ClientId`
 - Soft delete uses `DeletedUtc`
 - Audit fields: `CreatedUtc`, `CreatedBy`, `ModifiedUtc`, `ModifiedBy`. Automatically include these when creating new tables.
@@ -18,7 +18,7 @@ Represents the organisations that are using the system. Each client will have ma
 
 | Column | Type | Nullable | Key | Default | Notes |
 |------|------|------|------|------|------|
-| Id | int | No | PK | IDENTITY(1,1) | Primary key |
+| ClientId | int | No | PK | IDENTITY(1,1) | Primary key |
 | Name | nvarchar(200) | No | | | Display name |
 | Postcode | nvarchar(12) | Yes | | | |
 
@@ -27,8 +27,8 @@ Represent the organisations that a client is dealing with.
 
 | Column | Type | Nullable | Key | Default | Notes |
 |------|------|------|------|------|------|
-| Id | int | No | PK | IDENTITY(1,1) | Primary key |
-| ClientId | int | No | FK → Clients.Id | | Client owner |
+| OrganisationId | int | No | PK | IDENTITY(1,1) | Primary key |
+| ClientId | int | No | FK → Clients.ClientId | | Client owner |
 | Name | nvarchar(100) | No | | | Display name |
 | Postcode | nvarchar(12) | Yes | | | |
 
@@ -36,9 +36,9 @@ Represent the organisations that a client is dealing with.
 Represents the contacts of the CRM system
 | Column | Type | Nullable | Key | Default | Notes |
 |------|------|------|------|------|------|
-| Id | int | No | PK | IDENTITY(1,1) | Primary key |
-| ClientId | int | No | FK → Clients.Id | | Client owner |
-| OrganisationId | int | Yes | FK → Organisations.Id | | Organisation owner |
+| ContactId | int | No | PK | IDENTITY(1,1) | Primary key |
+| ClientId | int | No | FK → Clients.ClientId | | Client owner |
+| OrganisationId | int | Yes | FK → Organisations.OrganisationId | | Organisation owner |
 | FirstName | nvarchar(50) | Yes | | | |
 | LastName | nvarchar(50) | Yes | | | |
 | Email | nvarchar(60) | Yes | | | |
@@ -48,19 +48,19 @@ Represents the contacts of the CRM system
 Represents the definition form forms
 | Column | Type | Nullable | Key | Default | Notes |
 |------|------|------|------|------|------|
-| Id | int | No | PK | IDENTITY(1,1) | Primary key |
-| ClientId | int | No | FK → Clients.Id | | Client owner |
+| FormTypeId | int | No | PK | IDENTITY(1,1) | Primary key |
+| ClientId | int | No | FK → Clients.ClientId | | Client owner |
 | Name | nvarchar(max) | Yes | | | |
 
 ### Forms
 Represents forms that can be added to a contact or organisation to store custom information
 | Column | Type | Nullable | Key | Default | Notes |
 |------|------|------|------|------|------|
-| Id | int | No | PK | IDENTITY(1,1) | Primary key |
-| ClientId | int | No | FK → Clients.Id | | Client owner |
-| FormTypeId | int | No | FK → FormTypes.Id | | The FormType definition |
-| OrganisationId | int | Yes | FK → Organisations.Id | | Organisation owner |
-| ContactId | int | Yes | FK → Contacts.Id | | Contact owner |
+| FormId | int | No | PK | IDENTITY(1,1) | Primary key |
+| ClientId | int | No | FK → Clients.ClientId | | Client owner |
+| FormTypeId | int | No | FK → FormTypes.FormTypeId | | The FormType definition |
+| OrganisationId | int | Yes | FK → Organisations.OrganisationId | | Organisation owner |
+| ContactId | int | Yes | FK → Contacts.ContactId | | Contact owner |
 | Text1 | nvarchar(max) | Yes | | | |
 | Text2 | nvarchar(max) | Yes | | | |
 | DateTime1 | datetime2 | Yes | | | |
@@ -70,24 +70,25 @@ Represents forms that can be added to a contact or organisation to store custom 
 Represents rules for mirroring a form from one client/form type combination to another.
 | Column | Type | Nullable | Key | Default | Notes |
 |------|------|------|------|------|------|
-| Id | int | No | PK | IDENTITY(1,1) | Primary key |
-| SourceClientId | int | No | Logical reference → Clients.Id | | Client that owns the source form |
-| SourceFormTypeId | int | No | Logical reference → FormTypes.Id | | Form type to mirror from |
-| TargetClientId | int | No | Logical reference → Clients.Id | | Client that receives the mirrored form |
-| TargetFormTypeId | int | No | Logical reference → FormTypes.Id | | Form type to mirror to |
+| FormMirrorRuleId | int | No | PK | IDENTITY(1,1) | Primary key |
+| SourceClientId | int | No | Logical reference → Clients.ClientId | | Client that owns the source form |
+| SourceFormTypeId | int | No | Logical reference → FormTypes.FormTypeId | | Form type to mirror from |
+| TargetClientId | int | No | Logical reference → Clients.ClientId | | Client that receives the mirrored form |
+| TargetFormTypeId | int | No | Logical reference → FormTypes.FormTypeId | | Form type to mirror to |
+| TargetPlaceholderOrganisationId | int | No | FK → Organisations.OrganisationId | | Placeholder organisation to assign mirrored forms to |
 | IsActive | bit | No | | 1 | Enables or disables the mirroring rule |
 
 ## Relationships
 | From | To | Type | Notes |
 |---|---|---|---|
-| Organisations.ClientId | Clients.Id | Many-to-One | An organisation belongs to one client |
-| Contacts.ClientId | Clients.Id | Many-to-One | A contact belongs to one client |
-| Contacts.OrganisationId | Organisations.Id | Many-to-One | A contact optionally belongs to one organisation |
-| FormTypes.ClientId | Clients.Id | Many-to-One | A form type belongs to one client |
-| Forms.ClientId | Clients.Id | Many-to-One | A form belongs to one client |
-| Forms.FormTypeId | FormTypes.Id | Many-to-One | A form references one form type definition |
-| Forms.OrganisationId | Organisations.Id | Many-to-One | A form optionally belongs to one organisation |
-| Forms.ContactId | Contacts.Id | Many-to-One | A form optionally belongs to one contact |
+| Organisations.ClientId | Clients.ClientId | Many-to-One | An organisation belongs to one client |
+| Contacts.ClientId | Clients.ClientId | Many-to-One | A contact belongs to one client |
+| Contacts.OrganisationId | Organisations.OrganisationId | Many-to-One | A contact optionally belongs to one organisation |
+| FormTypes.ClientId | Clients.ClientId | Many-to-One | A form type belongs to one client |
+| Forms.ClientId | Clients.ClientId | Many-to-One | A form belongs to one client |
+| Forms.FormTypeId | FormTypes.FormTypeId | Many-to-One | A form references one form type definition |
+| Forms.OrganisationId | Organisations.OrganisationId | Many-to-One | A form optionally belongs to one organisation |
+| Forms.ContactId | Contacts.ContactId | Many-to-One | A form optionally belongs to one contact |
 
 ## Indexes
 

@@ -12,17 +12,41 @@ BEGIN
     )
     RETURN;
 
-    INSERT INTO Forms (ClientId, FormTypeId, Text1, Text2, CreatedUtc, OriginalFormId)
+    INSERT INTO Forms
+    (
+        ClientId,
+        FormTypeId,
+        OrganisationId,
+        ContactId,
+        Text1,
+        Text2,
+        Text3,
+        DateTime1,
+        DateTime2,
+        CreatedUtc,
+        CreatedBy,
+        OriginalFormId
+    )
     SELECT
         m.TargetClientId,
         m.TargetFormTypeId,
+        target_organisation.OrganisationId,
+        NULL,
         i.Text1,
         i.Text2,
+        i.Text3,
+        i.DateTime1,
+        i.DateTime2,
         GETUTCDATE(),
+        i.CreatedBy,
         i.FormId
     FROM inserted i
     INNER JOIN FormMirrorRules m
         ON m.SourceClientId   = i.ClientId
         AND m.SourceFormTypeId = i.FormTypeId
-        AND m.IsActive         = 1;
+        AND m.IsActive         = 1
+    INNER JOIN Organisations target_organisation
+        ON target_organisation.OrganisationId = m.TargetPlaceholderOrganisationId
+        AND target_organisation.ClientId = m.TargetClientId
+    WHERE i.OriginalFormId IS NULL;
 END;
