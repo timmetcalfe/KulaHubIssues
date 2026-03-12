@@ -1,6 +1,6 @@
 CREATE TABLE [dbo].[FormTypes]
 (
-    [Id] INT IDENTITY(1,1) NOT NULL,
+    [FormTypeId] INT IDENTITY(1,1) NOT NULL,
     [ClientId] INT NOT NULL,
     [Name] NVARCHAR(MAX) NULL,
     [CreatedUtc] DATETIME2(7) NOT NULL CONSTRAINT [DF_FormTypes_CreatedUtc] DEFAULT SYSUTCDATETIME(),
@@ -8,8 +8,8 @@ CREATE TABLE [dbo].[FormTypes]
     [ModifiedUtc] DATETIME2(7) NULL,
     [ModifiedBy] NVARCHAR(100) NULL,
     [DeletedUtc] DATETIME2(7) NULL,
-    CONSTRAINT [PK_FormTypes] PRIMARY KEY CLUSTERED ([Id] ASC),
-    CONSTRAINT [FK_FormTypes_Clients] FOREIGN KEY ([ClientId]) REFERENCES [dbo].[Clients] ([Id])
+    CONSTRAINT [PK_FormTypes] PRIMARY KEY CLUSTERED ([FormTypeId] ASC),
+    CONSTRAINT [FK_FormTypes_Clients] FOREIGN KEY ([ClientId]) REFERENCES [dbo].[Clients] ([ClientId])
 )
 GO
 

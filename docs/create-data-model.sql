@@ -5,7 +5,7 @@ BEGIN TRANSACTION;
 GO
 
 CREATE TABLE dbo.Clients (
-    Id int IDENTITY(1,1) NOT NULL
+    ClientId int IDENTITY(1,1) NOT NULL
         CONSTRAINT PK_Clients PRIMARY KEY,
     Name nvarchar(200) NOT NULL,
     Postcode nvarchar(12) NULL,
@@ -19,7 +19,7 @@ CREATE TABLE dbo.Clients (
 GO
 
 CREATE TABLE dbo.Organisations (
-    Id int IDENTITY(1,1) NOT NULL
+    OrganisationId int IDENTITY(1,1) NOT NULL
         CONSTRAINT PK_Organisations PRIMARY KEY,
     ClientId int NOT NULL,
     Name nvarchar(100) NOT NULL,
@@ -31,12 +31,12 @@ CREATE TABLE dbo.Organisations (
     ModifiedBy nvarchar(100) NULL,
     DeletedUtc datetime2(7) NULL,
     CONSTRAINT FK_Organisations_Clients
-        FOREIGN KEY (ClientId) REFERENCES dbo.Clients (Id)
+        FOREIGN KEY (ClientId) REFERENCES dbo.Clients (ClientId)
 );
 GO
 
 CREATE TABLE dbo.Contacts (
-    Id int IDENTITY(1,1) NOT NULL
+    ContactId int IDENTITY(1,1) NOT NULL
         CONSTRAINT PK_Contacts PRIMARY KEY,
     ClientId int NOT NULL,
     OrganisationId int NULL,
@@ -51,14 +51,14 @@ CREATE TABLE dbo.Contacts (
     ModifiedBy nvarchar(100) NULL,
     DeletedUtc datetime2(7) NULL,
     CONSTRAINT FK_Contacts_Clients
-        FOREIGN KEY (ClientId) REFERENCES dbo.Clients (Id),
+        FOREIGN KEY (ClientId) REFERENCES dbo.Clients (ClientId),
     CONSTRAINT FK_Contacts_Organisations
-        FOREIGN KEY (OrganisationId) REFERENCES dbo.Organisations (Id)
+        FOREIGN KEY (OrganisationId) REFERENCES dbo.Organisations (OrganisationId)
 );
 GO
 
 CREATE TABLE dbo.FormTypes (
-    Id int IDENTITY(1,1) NOT NULL
+    FormTypeId int IDENTITY(1,1) NOT NULL
         CONSTRAINT PK_FormTypes PRIMARY KEY,
     ClientId int NOT NULL,
     Name nvarchar(max) NULL,
@@ -69,12 +69,12 @@ CREATE TABLE dbo.FormTypes (
     ModifiedBy nvarchar(100) NULL,
     DeletedUtc datetime2(7) NULL,
     CONSTRAINT FK_FormTypes_Clients
-        FOREIGN KEY (ClientId) REFERENCES dbo.Clients (Id)
+        FOREIGN KEY (ClientId) REFERENCES dbo.Clients (ClientId)
 );
 GO
 
 CREATE TABLE dbo.Forms (
-    Id int IDENTITY(1,1) NOT NULL
+    FormId int IDENTITY(1,1) NOT NULL
         CONSTRAINT PK_Forms PRIMARY KEY,
     ClientId int NOT NULL,
     FormTypeId int NOT NULL,
@@ -91,13 +91,13 @@ CREATE TABLE dbo.Forms (
     ModifiedBy nvarchar(100) NULL,
     DeletedUtc datetime2(7) NULL,
     CONSTRAINT FK_Forms_Clients
-        FOREIGN KEY (ClientId) REFERENCES dbo.Clients (Id),
+        FOREIGN KEY (ClientId) REFERENCES dbo.Clients (ClientId),
     CONSTRAINT FK_Forms_FormTypes
-        FOREIGN KEY (FormTypeId) REFERENCES dbo.FormTypes (Id),
+        FOREIGN KEY (FormTypeId) REFERENCES dbo.FormTypes (FormTypeId),
     CONSTRAINT FK_Forms_Organisations
-        FOREIGN KEY (OrganisationId) REFERENCES dbo.Organisations (Id),
+        FOREIGN KEY (OrganisationId) REFERENCES dbo.Organisations (OrganisationId),
     CONSTRAINT FK_Forms_Contacts
-        FOREIGN KEY (ContactId) REFERENCES dbo.Contacts (Id),
+        FOREIGN KEY (ContactId) REFERENCES dbo.Contacts (ContactId),
     CONSTRAINT CK_Forms_HasOwner
         CHECK (OrganisationId IS NOT NULL OR ContactId IS NOT NULL)
 );

@@ -2,11 +2,11 @@
 This document describes the data models used in KulaHub.
 
 ## Overview
-This system supports clients(tenants), organisations, contacts and forms for a multi-tenant SaaS CRM application.
+This system supports clients(tenants), organisations, contacts, forms, and form mirror rules for a multi-tenant SaaS CRM application.
 
 ## Conventions and assumptions
 - The database will be Azure SQL Server
-- All tables use `Id` as an `int IDENTITY(1,1)` PK unless otherwise stated
+- All tables use `EntityId` as an `int IDENTITY(1,1)` PK unless otherwise stated, where Entity is the table name
 - All client-owned tables include `ClientId`
 - Soft delete uses `DeletedUtc`
 - Audit fields: `CreatedUtc`, `CreatedBy`, `ModifiedUtc`, `ModifiedBy`. Automatically include these when creating new tables.
@@ -65,6 +65,17 @@ Represents forms that can be added to a contact or organisation to store custom 
 | Text2 | nvarchar(max) | Yes | | | |
 | DateTime1 | datetime2 | Yes | | | |
 | DateTime2 | datetime2 | Yes | | | |
+
+### FormMirrorRules
+Represents rules for mirroring a form from one client/form type combination to another.
+| Column | Type | Nullable | Key | Default | Notes |
+|------|------|------|------|------|------|
+| Id | int | No | PK | IDENTITY(1,1) | Primary key |
+| SourceClientId | int | No | Logical reference → Clients.Id | | Client that owns the source form |
+| SourceFormTypeId | int | No | Logical reference → FormTypes.Id | | Form type to mirror from |
+| TargetClientId | int | No | Logical reference → Clients.Id | | Client that receives the mirrored form |
+| TargetFormTypeId | int | No | Logical reference → FormTypes.Id | | Form type to mirror to |
+| IsActive | bit | No | | 1 | Enables or disables the mirroring rule |
 
 ## Relationships
 | From | To | Type | Notes |

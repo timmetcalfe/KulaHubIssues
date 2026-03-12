@@ -1,6 +1,6 @@
 CREATE TABLE [dbo].[Contacts]
 (
-    [Id] INT IDENTITY(1,1) NOT NULL,
+    [ContactId] INT IDENTITY(1,1) NOT NULL,
     [ClientId] INT NOT NULL,
     [OrganisationId] INT NULL,
     [FirstName] NVARCHAR(50) NULL,
@@ -12,9 +12,9 @@ CREATE TABLE [dbo].[Contacts]
     [ModifiedUtc] DATETIME2(7) NULL,
     [ModifiedBy] NVARCHAR(100) NULL,
     [DeletedUtc] DATETIME2(7) NULL,
-    CONSTRAINT [PK_Contacts] PRIMARY KEY CLUSTERED ([Id] ASC),
-    CONSTRAINT [FK_Contacts_Clients] FOREIGN KEY ([ClientId]) REFERENCES [dbo].[Clients] ([Id]),
-    CONSTRAINT [FK_Contacts_Organisations] FOREIGN KEY ([OrganisationId]) REFERENCES [dbo].[Organisations] ([Id])
+    CONSTRAINT [PK_Contacts] PRIMARY KEY CLUSTERED ([ContactId] ASC),
+    CONSTRAINT [FK_Contacts_Clients] FOREIGN KEY ([ClientId]) REFERENCES [dbo].[Clients] ([ClientId]),
+    CONSTRAINT [FK_Contacts_Organisations] FOREIGN KEY ([OrganisationId]) REFERENCES [dbo].[Organisations] ([OrganisationId])
 )
 GO
 
