@@ -83,7 +83,7 @@ Represents forms that can be added to a contact or organisation to store custom 
 |---|---|---|---|
 | IX_Organisations_ClientId | Organisations | ClientId | Filter organisations by client |
 | IX_Contacts_ClientId | Contacts | ClientId | Filter contacts by client |
-| IX_Contacts_Email | Contacts | Email | Look up contacts by email address |
+| IX_Contacts_Email | Contacts | ClientId, Email | Look up contacts by email address within a client; filtered where Email IS NOT NULL |
 | IX_Contacts_OrganisationId | Contacts | OrganisationId | Filter contacts by organisation |
 | IX_FormTypes_ClientId | FormTypes | ClientId | Filter form types by client |
 | IX_Forms_ClientId | Forms | ClientId | Filter forms by client |
