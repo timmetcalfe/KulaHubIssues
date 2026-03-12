@@ -5,6 +5,7 @@ This document describes the data models used in KulaHub.
 This system supports clients(tenants), organisations, contacts and forms for a multi-tenant SaaS CRM application.
 
 ## Conventions and assumptions
+- The database will be Azure SQL Server
 - All tables use `Id` as PK unless otherwise stated
 - All client-owned tables include `ClientId`
 - Soft delete uses `DeletedUtc`
