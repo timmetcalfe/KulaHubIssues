@@ -37,7 +37,7 @@ Represents the contacts of the CRM system
 |------|------|------|------|------|------|
 | Id | uniqueidentifier | No | PK | | Primary key |
 | ClientId | uniqueidentifier | No | FK → Clients.Id | | Client owner |
-| OrganisationId | uniqueidentifier | Yes | FK → Organisation.Id | | Organisation owner |
+| OrganisationId | uniqueidentifier | Yes | FK → Organisations.Id | | Organisation owner |
 | FirstName | nvarchar(50) | Yes | | | |
 | LastName | nvarchar(50) | Yes | | | |
 | Email | nvarchar(60) | Yes | | | |
@@ -65,7 +65,15 @@ Represents forms that can be added to a contact or organisation to store custom 
 | DateTime1 | datetime2 | Yes | | | |
 | DateTime2 | datetime2 | Yes | | | |
 
-## Relatiionships
+## Relationships
 | From | To | Type | Notes |
 |---|---|---|---|
+| Organisations.ClientId | Clients.Id | Many-to-One | An organisation belongs to one client |
+| Contacts.ClientId | Clients.Id | Many-to-One | A contact belongs to one client |
+| Contacts.OrganisationId | Organisations.Id | Many-to-One | A contact optionally belongs to one organisation |
+| FormTypes.ClientId | Clients.Id | Many-to-One | A form type belongs to one client |
+| Forms.ClientId | Clients.Id | Many-to-One | A form belongs to one client |
+| Forms.FormTypeId | FormTypes.Id | Many-to-One | A form optionally references one form type definition |
+| Forms.OrganisationId | Organisations.Id | Many-to-One | A form optionally belongs to one organisation |
+| Forms.ContactId | Contacts.Id | Many-to-One | A form optionally belongs to one contact |
 
