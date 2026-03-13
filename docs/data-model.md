@@ -91,7 +91,6 @@ Represents rules for mirroring a form from one client/form type combination to a
 | Forms.ContactId | Contacts.ContactId | Many-to-One | A form optionally belongs to one contact |
 
 ## Indexes
-
 | Index Name | Table | Columns | Notes |
 |---|---|---|---|
 | IX_Organisations_ClientId | Organisations | ClientId | Filter organisations by client |
