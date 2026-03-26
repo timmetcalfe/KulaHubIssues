@@ -9,7 +9,7 @@ This system supports clients(tenants), organisations, contacts, forms, and form 
 - All tables use `EntityId` as an `int IDENTITY(1,1)` PK unless otherwise stated, where Entity is the singular table name
 - All client-owned tables include `ClientId`
 - Soft delete uses `DeletedUtc`
-- Audit fields: `CreatedUtc`, `CreatedBy`, `ModifiedUtc`, `ModifiedBy`. Automatically include these when creating new tables.
+- Audit fields: `CreatedUtc`, `CreatedBy`, `ModifiedUtc`, `ModifiedBy`. Automatically include these when creating new tables, except for IntegrationInbox table.
 
 ## Entities / Tables
 
@@ -77,6 +77,52 @@ Represents rules for mirroring a form from one client/form type combination to a
 | TargetFormTypeId | int | No | Logical reference → FormTypes.FormTypeId | | Form type to mirror to |
 | TargetPlaceholderOrganisationId | int | No | FK → Organisations.OrganisationId | | Placeholder organisation to assign mirrored forms to |
 | IsActive | bit | No | | 1 | Enables or disables the mirroring rule |
+
+### IntegrationInbox
+For storing details of changes to rows in certain tables that can be read by a background process to maybe call 3rd party APIs with the changes.
+
+| Column | Type | Nullable | Key | Default | Notes |
+|------|------|------|------|------|------|
+| Id | bigint | No | PK | IDENTITY(1,1) | Primary key |
+| ClientId | int | No | | | Client owner |
+| EntityType | nvarchar(100) | No | | | Source entity/table name |
+| EventType | nvarchar(100) | No | | | Event category for downstream handling |
+| ChangeType | nvarchar(50) | No | | | Type of change captured for the event |
+| ExternalEntityId | nvarchar(100) | Yes | | | External system identifier when applicable |
+| PayloadJson | nvarchar(max) | No | | | Raw payload captured for downstream processing |
+| ReceivedUtc | datetime2 | No | | SYSUTCDATETIME() | When the change was received |
+| ProcessedUtc | datetime2 | Yes | | | When downstream processing completed |
+
+### IntegrationOutbound
+For storing outbound integration events and payloads that are ready to be processed or have been sent to external systems.
+
+| Column | Type | Nullable | Key | Default | Notes |
+|------|------|------|------|------|------|
+| Id | bigint | No | PK | IDENTITY(1,1) | Primary key |
+| ClientId | int | No | | | Client owner |
+| EntityType | nvarchar(100) | No | | | Source entity/table name |
+| EventType | nvarchar(100) | No | | | Event category for downstream handling |
+| ChangeType | nvarchar(50) | No | | | Type of change captured for the event |
+| ExternalEntityId | nvarchar(100) | Yes | | | External system identifier when applicable |
+| PayloadJson | nvarchar(max) | No | | | Raw payload captured for downstream processing |
+| ReceivedUtc | datetime2 | No | | SYSUTCDATETIME() | When the change was received |
+| ProcessedUtc | datetime2 | Yes | | | When downstream processing completed |
+
+### IntegrationInbound
+For storing inbound integration events and payloads received from external systems before or after processing.
+
+| Column | Type | Nullable | Key | Default | Notes |
+|------|------|------|------|------|------|
+| Id | bigint | No | PK | IDENTITY(1,1) | Primary key |
+| ClientId | int | No | | | Client owner |
+| EntityType | nvarchar(100) | No | | | Source entity/table name |
+| EventType | nvarchar(100) | No | | | Event category for downstream handling |
+| ChangeType | nvarchar(50) | No | | | Type of change captured for the event |
+| ExternalEntityId | nvarchar(100) | Yes | | | External system identifier when applicable |
+| PayloadJson | nvarchar(max) | No | | | Raw payload captured for downstream processing |
+| ReceivedUtc | datetime2 | No | | SYSUTCDATETIME() | When the change was received |
+| ProcessedUtc | datetime2 | Yes | | | When downstream processing completed |
+
 
 ## Relationships
 | From | To | Type | Notes |
