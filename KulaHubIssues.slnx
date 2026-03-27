@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/KulaHub.Api/KulaHub.Api.csproj" />
+    <Project Path="src/KulaHub.Data/KulaHub.Data.csproj" />
+    <Project Path="src/KulaHub.Functions/KulaHub.Functions.csproj" />
+    <Project Path="src/KulaHub.Web/KulaHub.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/KulaHub.IntegrationTests/KulaHub.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

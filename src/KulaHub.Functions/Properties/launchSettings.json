@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "KulaHub.Functions": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7164",
+      "launchBrowser": false
+    }
+  }
+}

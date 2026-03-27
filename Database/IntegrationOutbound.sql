@@ -8,6 +8,8 @@ CREATE TABLE [dbo].[IntegrationOutbound]
     [ExternalEntityId] NVARCHAR(100) NULL,
     [PayloadJson] NVARCHAR(MAX) NOT NULL,
     [ReceivedUtc] DATETIME2(7) NOT NULL CONSTRAINT [DF_IntegrationOutbound_ReceivedUtc] DEFAULT SYSUTCDATETIME(),
+    [DispatchedUtc] DATETIME2(7) NULL,
+    [DispatchTarget] NVARCHAR(200) NULL,
     [ProcessedUtc] DATETIME2(7) NULL,
     CONSTRAINT [PK_IntegrationOutbound] PRIMARY KEY CLUSTERED ([Id] ASC)
     --, CONSTRAINT [FK_IntegrationOutbound_Clients] FOREIGN KEY ([ClientId]) REFERENCES [dbo].[Clients] ([ClientId])
@@ -21,4 +23,9 @@ GO
 CREATE INDEX [IX_IntegrationOutbound_Unprocessed]
     ON [dbo].[IntegrationOutbound] ([ProcessedUtc], [ReceivedUtc])
     WHERE [ProcessedUtc] IS NULL;
+GO
+
+CREATE INDEX [IX_IntegrationOutbound_Undispatched]
+    ON [dbo].[IntegrationOutbound] ([DispatchedUtc], [ReceivedUtc])
+    WHERE [DispatchedUtc] IS NULL;
 GO

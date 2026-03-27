@@ -2,7 +2,7 @@
 This document describes the data models used in KulaHub.
 
 ## Overview
-This system supports clients(tenants), organisations, contacts, forms, and form mirror rules for a multi-tenant SaaS CRM application.
+This system supports clients (tenants), organisations, contacts, notes, forms, and form mirror rules for a multi-tenant SaaS CRM application.
 
 ## Conventions and assumptions
 - The database will be Azure SQL Server
@@ -44,6 +44,15 @@ Represents the contacts of the CRM system
 | Email | nvarchar(60) | Yes | | | |
 | Postcode | nvarchar(12) | Yes | | | |
 
+### Notes
+Represents free-text notes attached to a contact.
+| Column | Type | Nullable | Key | Default | Notes |
+|------|------|------|------|------|------|
+| NoteId | int | No | PK | IDENTITY(1,1) | Primary key |
+| ClientId | int | No | FK → Clients.ClientId | | Client owner |
+| ContactId | int | No | FK → Contacts.ContactId | | Contact owner |
+| Content | nvarchar(max) | No | | | Note body |
+
 ### FormTypes
 Represents the definition form forms
 | Column | Type | Nullable | Key | Default | Notes |
@@ -63,8 +72,10 @@ Represents forms that can be added to a contact or organisation to store custom 
 | ContactId | int | Yes | FK → Contacts.ContactId | | Contact owner |
 | Text1 | nvarchar(max) | Yes | | | |
 | Text2 | nvarchar(max) | Yes | | | |
+| Text3 | nvarchar(max) | Yes | | | Additional free-text slot |
 | DateTime1 | datetime2 | Yes | | | |
 | DateTime2 | datetime2 | Yes | | | |
+| OriginalFormId | int | Yes | Logical reference → Forms.FormId | | Tracks the source form for mirrored copies |
 
 ### FormMirrorRules - IGNORE FOR NOW
 Represents rules for mirroring a form from one client/form type combination to another.
@@ -91,6 +102,8 @@ For storing details of changes to rows in certain tables that can be read by a b
 | ExternalEntityId | nvarchar(100) | Yes | | | External system identifier when applicable |
 | PayloadJson | nvarchar(max) | No | | | Raw payload captured for downstream processing |
 | ReceivedUtc | datetime2 | No | | SYSUTCDATETIME() | When the change was received |
+| DispatchedUtc | datetime2 | Yes | | | When the event was dispatched to Service Bus |
+| DispatchTarget | nvarchar(200) | Yes | | | Queue or topic name used for dispatch |
 | ProcessedUtc | datetime2 | Yes | | | When downstream processing completed |
 
 ### IntegrationOutbound
@@ -106,6 +119,8 @@ For storing outbound integration events and payloads that are ready to be proces
 | ExternalEntityId | nvarchar(100) | Yes | | | External system identifier when applicable |
 | PayloadJson | nvarchar(max) | No | | | Raw payload captured for downstream processing |
 | ReceivedUtc | datetime2 | No | | SYSUTCDATETIME() | When the change was received |
+| DispatchedUtc | datetime2 | Yes | | | When the event was dispatched to Service Bus |
+| DispatchTarget | nvarchar(200) | Yes | | | Queue or topic name used for dispatch |
 | ProcessedUtc | datetime2 | Yes | | | When downstream processing completed |
 
 ### IntegrationInbound
@@ -130,6 +145,8 @@ For storing inbound integration events and payloads received from external syste
 | Organisations.ClientId | Clients.ClientId | Many-to-One | An organisation belongs to one client |
 | Contacts.ClientId | Clients.ClientId | Many-to-One | A contact belongs to one client |
 | Contacts.OrganisationId | Organisations.OrganisationId | Many-to-One | A contact optionally belongs to one organisation |
+| Notes.ClientId | Clients.ClientId | Many-to-One | A note belongs to one client |
+| Notes.ContactId | Contacts.ContactId | Many-to-One | A note belongs to one contact |
 | FormTypes.ClientId | Clients.ClientId | Many-to-One | A form type belongs to one client |
 | Forms.ClientId | Clients.ClientId | Many-to-One | A form belongs to one client |
 | Forms.FormTypeId | FormTypes.FormTypeId | Many-to-One | A form references one form type definition |
@@ -143,6 +160,8 @@ For storing inbound integration events and payloads received from external syste
 | IX_Contacts_ClientId | Contacts | ClientId | Filter contacts by client |
 | IX_Contacts_Email | Contacts | ClientId, Email | Look up contacts by email address within a client; filtered where Email IS NOT NULL |
 | IX_Contacts_OrganisationId | Contacts | OrganisationId | Filter contacts by organisation |
+| IX_Notes_ClientId | Notes | ClientId | Filter notes by client |
+| IX_Notes_ContactId | Notes | ContactId | Filter notes by contact |
 | IX_FormTypes_ClientId | FormTypes | ClientId | Filter form types by client |
 | IX_Forms_ClientId | Forms | ClientId | Filter forms by client |
 | IX_Forms_FormTypeId | Forms | FormTypeId | Filter forms by form type |
