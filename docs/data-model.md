@@ -66,7 +66,7 @@ Represents forms that can be added to a contact or organisation to store custom 
 | DateTime1 | datetime2 | Yes | | | |
 | DateTime2 | datetime2 | Yes | | | |
 
-### FormMirrorRules
+### FormMirrorRules - IGNORE FOR NOW
 Represents rules for mirroring a form from one client/form type combination to another.
 | Column | Type | Nullable | Key | Default | Notes |
 |------|------|------|------|------|------|
