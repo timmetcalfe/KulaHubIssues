@@ -49,9 +49,10 @@ public static class ContactEndpoints
 
             try
             {
+                var originType = body.OriginType ?? OriginType.ExternalClient;
                 var result = await crmService.CreateContactAsync(
                     new CreateContactCommand(clientId, body.OrganisationId, body.FirstName, body.LastName, body.Email, body.Postcode),
-                    actor: "web-api",
+                    originType,
                     cancellationToken);
 
                 return Results.Created($"/api/clients/{clientId}/contacts/{result.ContactId}", result);
@@ -76,9 +77,10 @@ public static class ContactEndpoints
 
             try
             {
+                var originType = body.OriginType ?? OriginType.ExternalClient;
                 var result = await crmService.AddNoteAsync(
                     new AddNoteCommand(clientId, contactId, body.Content),
-                    actor: "web-api",
+                    originType,
                     cancellationToken);
 
                 return Results.Created($"/api/clients/{clientId}/contacts/{contactId}", result);
@@ -103,9 +105,10 @@ public static class ContactEndpoints
 
             try
             {
+                var originType = body.OriginType ?? OriginType.ExternalClient;
                 var result = await crmService.CreateContactFormAsync(
                     new CreateContactFormCommand(clientId, contactId, body.FormTypeId, body.Text1, body.Text2, body.Text3, body.DateTime1, body.DateTime2),
-                    actor: "web-api",
+                    originType,
                     cancellationToken);
 
                 return Results.Created($"/api/clients/{clientId}/contacts/{contactId}", result);
@@ -149,9 +152,10 @@ public static class ContactEndpoints
         string? FirstName,
         string? LastName,
         [property: EmailAddress] string? Email,
-        string? Postcode);
+        string? Postcode,
+        OriginType? OriginType = null);
 
-    public sealed record CreateNoteBody([property: Required] string Content);
+    public sealed record CreateNoteBody([property: Required] string Content, OriginType? OriginType = null);
 
     public sealed record CreateFormBody(
         [property: Range(1, int.MaxValue)] int FormTypeId,
@@ -159,5 +163,6 @@ public static class ContactEndpoints
         string? Text2,
         string? Text3,
         DateTime? DateTime1,
-        DateTime? DateTime2);
+        DateTime? DateTime2,
+        OriginType? OriginType = null);
 }

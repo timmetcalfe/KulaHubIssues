@@ -1,4 +1,16 @@
+using System.Text.Json.Serialization;
+
 namespace KulaHub.Data;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum OriginType
+{
+    ExternalClient,
+    InternalApp,
+    BackOfficeUser,
+    BatchJob,
+    System
+}
 
 public sealed record ClientLookupDto(int ClientId, string Name);
 
@@ -68,7 +80,7 @@ public interface IKulaHubCrmService
     Task<IReadOnlyList<LookupOptionDto>> GetFormTypesAsync(int clientId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ContactListItemDto>> GetContactsAsync(int clientId, CancellationToken cancellationToken = default);
     Task<ContactDetailDto?> GetContactDetailAsync(int clientId, int contactId, CancellationToken cancellationToken = default);
-    Task<CreateContactResult> CreateContactAsync(CreateContactCommand command, string actor, CancellationToken cancellationToken = default);
-    Task<CreateNoteResult> AddNoteAsync(AddNoteCommand command, string actor, CancellationToken cancellationToken = default);
-    Task<CreateFormResult> CreateContactFormAsync(CreateContactFormCommand command, string actor, CancellationToken cancellationToken = default);
+    Task<CreateContactResult> CreateContactAsync(CreateContactCommand command, OriginType originType, CancellationToken cancellationToken = default);
+    Task<CreateNoteResult> AddNoteAsync(AddNoteCommand command, OriginType originType, CancellationToken cancellationToken = default);
+    Task<CreateFormResult> CreateContactFormAsync(CreateContactFormCommand command, OriginType originType, CancellationToken cancellationToken = default);
 }

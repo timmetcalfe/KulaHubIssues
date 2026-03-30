@@ -120,6 +120,7 @@ public sealed class KulaHubDbContext(DbContextOptions<KulaHubDbContext> options)
             entity.HasKey(x => x.Id);
             entity.HasIndex(x => x.ClientId).HasDatabaseName("IX_IntegrationInbox_ClientId");
             entity.HasIndex(x => new { x.ProcessedUtc, x.ReceivedUtc }).HasDatabaseName("IX_IntegrationInbox_Unprocessed");
+            entity.Property(x => x.OriginType).HasConversion<string>().HasMaxLength(50);
             entity.Property(x => x.EntityType).HasMaxLength(100);
             entity.Property(x => x.EventType).HasMaxLength(100);
             entity.Property(x => x.ChangeType).HasMaxLength(50);
@@ -133,6 +134,7 @@ public sealed class KulaHubDbContext(DbContextOptions<KulaHubDbContext> options)
             entity.HasIndex(x => x.ClientId).HasDatabaseName("IX_IntegrationOutbound_ClientId");
             entity.HasIndex(x => new { x.ProcessedUtc, x.ReceivedUtc }).HasDatabaseName("IX_IntegrationOutbound_Unprocessed");
             entity.HasIndex(x => new { x.DispatchedUtc, x.ReceivedUtc }).HasDatabaseName("IX_IntegrationOutbound_Undispatched");
+            entity.Property(x => x.OriginType).HasConversion<string>().HasMaxLength(50);
             entity.Property(x => x.EntityType).HasMaxLength(100);
             entity.Property(x => x.EventType).HasMaxLength(100);
             entity.Property(x => x.ChangeType).HasMaxLength(50);
@@ -147,6 +149,7 @@ public sealed class KulaHubDbContext(DbContextOptions<KulaHubDbContext> options)
             entity.HasIndex(x => x.ClientId).HasDatabaseName("IX_IntegrationInbound_ClientId");
             entity.HasIndex(x => new { x.ProcessedUtc, x.ReceivedUtc }).HasDatabaseName("IX_IntegrationInbound_Unprocessed");
             entity.HasIndex(x => new { x.DispatchedUtc, x.ReceivedUtc }).HasDatabaseName("IX_IntegrationInbound_Undispatched");
+            entity.Property(x => x.OriginType).HasConversion<string>().HasMaxLength(50);
             entity.Property(x => x.EntityType).HasMaxLength(100);
             entity.Property(x => x.EventType).HasMaxLength(100);
             entity.Property(x => x.ChangeType).HasMaxLength(50);

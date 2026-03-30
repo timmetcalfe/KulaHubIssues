@@ -35,7 +35,7 @@ public sealed class CreateModel(IKulaHubCrmService crmService) : PageModel
         {
             var result = await crmService.CreateContactAsync(
                 new CreateContactCommand(clientId, Input.OrganisationId, Input.FirstName, Input.LastName, Input.Email, Input.Postcode),
-                actor: "razor-pages",
+                OriginType.InternalApp,
                 cancellationToken);
 
             return RedirectToPage("/Contacts/Details", new { clientId, contactId = result.ContactId });

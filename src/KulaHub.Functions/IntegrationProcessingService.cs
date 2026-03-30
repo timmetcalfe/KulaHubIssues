@@ -26,12 +26,14 @@ public sealed class IntegrationProcessingService(
         {
             await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
             var processedUtc = DateTime.UtcNow;
+            var routeAction = ResolveInboxRoute(entry);
 
-            if (entry.ClientId == processingOptions.SouthbridgeOutboundClientId)
+            if (routeAction == InboxRouteAction.Outbound)
             {
                 dbContext.IntegrationOutbound.Add(new IntegrationOutboundEntry
                 {
                     ClientId = entry.ClientId,
+                    OriginType = entry.OriginType,
                     EntityType = entry.EntityType,
                     EventType = entry.EventType,
                     ChangeType = entry.ChangeType,
@@ -40,11 +42,12 @@ public sealed class IntegrationProcessingService(
                     ReceivedUtc = entry.ReceivedUtc
                 });
             }
-            else if (entry.ClientId == processingOptions.NorthwindInboundClientId)
+            else if (routeAction == InboxRouteAction.Inbound)
             {
                 dbContext.IntegrationInbound.Add(new IntegrationInboundEntry
                 {
                     ClientId = entry.ClientId,
+                    OriginType = entry.OriginType,
                     EntityType = entry.EntityType,
                     EventType = entry.EventType,
                     ChangeType = entry.ChangeType,
@@ -55,7 +58,7 @@ public sealed class IntegrationProcessingService(
             }
             else
             {
-                logger.LogInformation("IntegrationInbox entry {IntegrationInboxId} for client {ClientId} has no matching processing rule.", entry.Id, entry.ClientId);
+                logger.LogInformation("IntegrationInbox entry {IntegrationInboxId} for client {ClientId} and origin type {OriginType} has no matching processing rule.", entry.Id, entry.ClientId, entry.OriginType);
             }
 
             entry.ProcessedUtc = processedUtc;
@@ -148,15 +151,20 @@ public sealed class IntegrationProcessingService(
 
     private string? ResolveOutboundQueue(int clientId)
     {
-        return clientId == processingOptions.SouthbridgeOutboundClientId
-            ? processingOptions.SouthbridgeOutboundQueueName
-            : null;
+        return processingOptions.OutboundQueueRules
+            .FirstOrDefault(rule => rule.ClientId == clientId)?.QueueName;
     }
 
     private string? ResolveInboundQueue(int clientId)
     {
-        return clientId == processingOptions.NorthwindInboundClientId
-            ? processingOptions.NorthwindInboundQueueName
-            : null;
+        return processingOptions.InboundQueueRules
+            .FirstOrDefault(rule => rule.ClientId == clientId)?.QueueName;
+    }
+
+    private InboxRouteAction ResolveInboxRoute(IntegrationInboxEntry entry)
+    {
+        return processingOptions.InboxRoutingRules
+            .FirstOrDefault(rule => rule.ClientId == entry.ClientId && rule.OriginTypes.Contains(entry.OriginType))?.Action
+            ?? InboxRouteAction.Ignore;
     }
 }

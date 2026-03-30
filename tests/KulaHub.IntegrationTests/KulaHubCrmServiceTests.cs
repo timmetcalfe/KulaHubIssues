@@ -55,13 +55,15 @@ public sealed class KulaHubCrmServiceTests : IAsyncLifetime
     {
         var result = await crmService.CreateContactAsync(
             new CreateContactCommand(4, null, "Ava", "Stone", "ava.stone@southbridge.example", "SR2 5CC"),
-            actor: "test");
+            OriginType.ExternalClient);
 
         var contact = await dbContext.Contacts.SingleAsync(item => item.ContactId == result.ContactId);
         var inboxEntry = await dbContext.IntegrationInbox.SingleAsync();
 
         Assert.Equal(4, contact.ClientId);
         Assert.Equal("Ava", contact.FirstName);
+        Assert.Equal(nameof(OriginType.ExternalClient), contact.CreatedBy);
+        Assert.Equal(OriginType.ExternalClient, inboxEntry.OriginType);
         Assert.Equal("Contact", inboxEntry.EntityType);
         Assert.Equal("Contact.Created", inboxEntry.EventType);
     }
@@ -71,17 +73,20 @@ public sealed class KulaHubCrmServiceTests : IAsyncLifetime
     {
         var contact = await crmService.CreateContactAsync(
             new CreateContactCommand(4, null, "Noah", "Foster", "noah.foster@southbridge.example", null),
-            actor: "test");
+            OriginType.InternalApp);
 
         var noteResult = await crmService.AddNoteAsync(
             new AddNoteCommand(4, contact.ContactId, "Confirmed follow-up workshop."),
-            actor: "test");
+            OriginType.InternalApp);
 
         var note = await dbContext.Notes.SingleAsync(item => item.NoteId == noteResult.NoteId);
         var inboxEntries = await dbContext.IntegrationInbox.OrderBy(item => item.Id).ToListAsync();
 
         Assert.Equal(contact.ContactId, note.ContactId);
+        Assert.Equal(nameof(OriginType.InternalApp), note.CreatedBy);
         Assert.Equal(2, inboxEntries.Count);
+        Assert.Equal(OriginType.InternalApp, inboxEntries[0].OriginType);
+        Assert.Equal(OriginType.InternalApp, inboxEntries[1].OriginType);
         Assert.Equal("Note", inboxEntries[1].EntityType);
         Assert.Equal("Note.Created", inboxEntries[1].EventType);
     }

@@ -4,6 +4,7 @@ public sealed class IntegrationInboxEntry
 {
     public long Id { get; set; }
     public int ClientId { get; set; }
+    public OriginType OriginType { get; set; }
     public string EntityType { get; set; } = string.Empty;
     public string EventType { get; set; } = string.Empty;
     public string ChangeType { get; set; } = string.Empty;

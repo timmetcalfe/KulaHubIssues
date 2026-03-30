@@ -2,6 +2,7 @@ CREATE TABLE [dbo].[IntegrationInbound]
 (
     [Id] BIGINT IDENTITY(1,1) NOT NULL,
     [ClientId] INT NOT NULL,
+    [OriginType] NVARCHAR(50) NOT NULL,
     [EntityType] NVARCHAR(100) NOT NULL,
     [EventType] NVARCHAR(100) NOT NULL,
     [ChangeType] NVARCHAR(50) NOT NULL,

@@ -41,7 +41,7 @@ public sealed class DetailsModel(IKulaHubCrmService crmService) : PageModel
         {
             await crmService.AddNoteAsync(
                 new AddNoteCommand(clientId, contactId, NoteInput.Content),
-                actor: "razor-pages",
+                OriginType.InternalApp,
                 cancellationToken);
 
             return RedirectToPage(new { clientId, contactId });
@@ -68,7 +68,7 @@ public sealed class DetailsModel(IKulaHubCrmService crmService) : PageModel
         {
             await crmService.CreateContactFormAsync(
                 new CreateContactFormCommand(clientId, contactId, FormInput.FormTypeId, FormInput.Text1, FormInput.Text2, FormInput.Text3, FormInput.DateTime1, FormInput.DateTime2),
-                actor: "razor-pages",
+                OriginType.InternalApp,
                 cancellationToken);
 
             return RedirectToPage(new { clientId, contactId });

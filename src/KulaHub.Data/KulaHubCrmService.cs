@@ -131,7 +131,7 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
             forms);
     }
 
-    public async Task<CreateContactResult> CreateContactAsync(CreateContactCommand command, string actor, CancellationToken cancellationToken = default)
+    public async Task<CreateContactResult> CreateContactAsync(CreateContactCommand command, OriginType originType, CancellationToken cancellationToken = default)
     {
         await EnsureClientExistsAsync(command.ClientId, cancellationToken);
 
@@ -160,7 +160,7 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
             Email = TrimToNull(command.Email),
             Postcode = TrimToNull(command.Postcode),
             CreatedUtc = createdUtc,
-            CreatedBy = actor
+            CreatedBy = originType.ToString()
         };
 
         dbContext.Contacts.Add(contact);
@@ -181,8 +181,10 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
                 contact.Email,
                 contact.Postcode,
                 contact.CreatedUtc,
-                contact.CreatedBy
+                contact.CreatedBy,
+                OriginType = originType.ToString()
             },
+            originType,
             receivedUtc: createdUtc);
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -191,7 +193,7 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
         return new CreateContactResult(contact.ContactId);
     }
 
-    public async Task<CreateNoteResult> AddNoteAsync(AddNoteCommand command, string actor, CancellationToken cancellationToken = default)
+    public async Task<CreateNoteResult> AddNoteAsync(AddNoteCommand command, OriginType originType, CancellationToken cancellationToken = default)
     {
         await EnsureContactExistsAsync(command.ClientId, command.ContactId, cancellationToken);
 
@@ -210,7 +212,7 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
             ContactId = command.ContactId,
             Content = command.Content.Trim(),
             CreatedUtc = createdUtc,
-            CreatedBy = actor
+            CreatedBy = originType.ToString()
         };
 
         dbContext.Notes.Add(note);
@@ -228,8 +230,10 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
                 note.ContactId,
                 note.Content,
                 note.CreatedUtc,
-                note.CreatedBy
+                note.CreatedBy,
+                OriginType = originType.ToString()
             },
+            originType,
             receivedUtc: createdUtc);
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -238,7 +242,7 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
         return new CreateNoteResult(note.NoteId);
     }
 
-    public async Task<CreateFormResult> CreateContactFormAsync(CreateContactFormCommand command, string actor, CancellationToken cancellationToken = default)
+    public async Task<CreateFormResult> CreateContactFormAsync(CreateContactFormCommand command, OriginType originType, CancellationToken cancellationToken = default)
     {
         await EnsureContactExistsAsync(command.ClientId, command.ContactId, cancellationToken);
         await EnsureFormTypeExistsAsync(command.ClientId, command.FormTypeId, cancellationToken);
@@ -258,7 +262,7 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
             DateTime1 = command.DateTime1,
             DateTime2 = command.DateTime2,
             CreatedUtc = createdUtc,
-            CreatedBy = actor
+            CreatedBy = originType.ToString()
         };
 
         dbContext.Forms.Add(form);
@@ -281,8 +285,10 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
                 form.DateTime1,
                 form.DateTime2,
                 form.CreatedUtc,
-                form.CreatedBy
+                form.CreatedBy,
+                OriginType = originType.ToString()
             },
+            originType,
             receivedUtc: createdUtc);
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -291,11 +297,12 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
         return new CreateFormResult(form.FormId);
     }
 
-    private void AddInboxEntry(int clientId, string entityType, string eventType, string changeType, object payload, DateTime receivedUtc)
+    private void AddInboxEntry(int clientId, string entityType, string eventType, string changeType, object payload, OriginType originType, DateTime receivedUtc)
     {
         dbContext.IntegrationInbox.Add(new IntegrationInboxEntry
         {
             ClientId = clientId,
+            OriginType = originType,
             EntityType = entityType,
             EventType = eventType,
             ChangeType = changeType,
