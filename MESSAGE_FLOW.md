@@ -4,7 +4,7 @@ This diagram shows the current end-to-end flow from an API write request through
 
 ```mermaid
 flowchart TD
-    A[Client calls API endpoint<br/>POST /api/clients/{clientId}/contacts] --> B[ContactEndpoints.MapPost]
+    A[Client calls API endpoint<br/>POST /api/clients/:clientId/contacts] --> B[ContactEndpoints.MapPost]
     B --> C[KulaHubCrmService.CreateContactAsync]
     C --> D[Insert Contact row<br/>save changes]
     D --> E[Insert IntegrationInbox row<br/>EventType = Contact.Created<br/>OriginType included in payload and row]
