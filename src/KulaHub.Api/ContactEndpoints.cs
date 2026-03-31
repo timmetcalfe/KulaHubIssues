@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using KulaHub.Data;
+using Microsoft.Extensions.Options;
 
 namespace KulaHub.Api;
 
@@ -41,12 +42,6 @@ public static class ContactEndpoints
 
         group.MapPost("/{clientId:int}/contacts", async (int clientId, CreateContactBody body, IKulaHubCrmService crmService, CancellationToken cancellationToken) =>
         {
-            var validationProblem = Validate(body);
-            if (validationProblem is not null)
-            {
-                return validationProblem;
-            }
-
             try
             {
                 var originType = body.OriginType ?? OriginType.ExternalClient;
@@ -69,12 +64,6 @@ public static class ContactEndpoints
 
         group.MapPost("/{clientId:int}/contacts/{contactId:int}/notes", async (int clientId, int contactId, CreateNoteBody body, IKulaHubCrmService crmService, CancellationToken cancellationToken) =>
         {
-            var validationProblem = Validate(body);
-            if (validationProblem is not null)
-            {
-                return validationProblem;
-            }
-
             try
             {
                 var originType = body.OriginType ?? OriginType.ExternalClient;
@@ -97,12 +86,6 @@ public static class ContactEndpoints
 
         group.MapPost("/{clientId:int}/contacts/{contactId:int}/forms", async (int clientId, int contactId, CreateFormBody body, IKulaHubCrmService crmService, CancellationToken cancellationToken) =>
         {
-            var validationProblem = Validate(body);
-            if (validationProblem is not null)
-            {
-                return validationProblem;
-            }
-
             try
             {
                 var originType = body.OriginType ?? OriginType.ExternalClient;
@@ -126,27 +109,6 @@ public static class ContactEndpoints
         return endpoints;
     }
 
-    private static IResult? Validate<T>(T body)
-    {
-        var validationContext = new ValidationContext(body!);
-        var validationResults = new List<ValidationResult>();
-        var isValid = Validator.TryValidateObject(body!, validationContext, validationResults, validateAllProperties: true);
-
-        if (isValid)
-        {
-            return null;
-        }
-
-        var errors = validationResults
-            .SelectMany(result => result.MemberNames.DefaultIfEmpty(string.Empty), (result, member) => new { member, result.ErrorMessage })
-            .GroupBy(item => string.IsNullOrWhiteSpace(item.member) ? "body" : item.member)
-            .ToDictionary(
-                group => group.Key,
-                group => group.Select(item => item.ErrorMessage ?? "Invalid value.").ToArray());
-
-        return Results.ValidationProblem(errors);
-    }
-
     public sealed record CreateContactBody(
         int? OrganisationId,
         string? FirstName,
@@ -154,6 +116,7 @@ public static class ContactEndpoints
         [property: EmailAddress] string? Email,
         string? Postcode,
         OriginType? OriginType = null);
+
 
     public sealed record CreateNoteBody([property: Required] string Content, OriginType? OriginType = null);
 

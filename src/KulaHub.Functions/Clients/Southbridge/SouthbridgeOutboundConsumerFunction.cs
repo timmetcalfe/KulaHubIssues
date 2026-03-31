@@ -1,7 +1,7 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
-namespace KulaHub.Functions;
+namespace KulaHub.Functions.Clients.Southbridge;
 
 public sealed class SouthbridgeOutboundConsumerFunction(
     IntegrationProcessingService processingService,

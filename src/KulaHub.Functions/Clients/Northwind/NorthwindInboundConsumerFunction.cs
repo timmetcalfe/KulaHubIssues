@@ -1,7 +1,7 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
-namespace KulaHub.Functions;
+namespace KulaHub.Functions.Clients.Northwind;
 
 public sealed class NorthwindInboundConsumerFunction(
     IntegrationProcessingService processingService,

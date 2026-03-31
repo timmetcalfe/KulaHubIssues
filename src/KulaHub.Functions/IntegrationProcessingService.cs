@@ -24,7 +24,6 @@ public sealed class IntegrationProcessingService(
 
         foreach (var entry in inboxBatch)
         {
-            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
             var processedUtc = DateTime.UtcNow;
             var routeAction = ResolveInboxRoute(entry);
 
@@ -63,7 +62,6 @@ public sealed class IntegrationProcessingService(
 
             entry.ProcessedUtc = processedUtc;
             await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
         }
 
         return inboxBatch.Count;
