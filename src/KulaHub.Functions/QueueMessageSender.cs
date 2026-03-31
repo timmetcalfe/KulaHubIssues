@@ -1,6 +1,6 @@
 using System.Text.Json;
+using System.Collections.Concurrent;
 using Azure.Messaging.ServiceBus;
-using Microsoft.Extensions.Configuration;
 
 namespace KulaHub.Functions;
 
@@ -9,19 +9,13 @@ public interface IQueueMessageSender
     Task SendAsync(string queueName, QueuedIntegrationMessage message, CancellationToken cancellationToken);
 }
 
-public sealed class QueueMessageSender(IConfiguration configuration) : IQueueMessageSender
+public sealed class QueueMessageSender(ServiceBusClient client) : IQueueMessageSender, IAsyncDisposable
 {
+    private readonly ConcurrentDictionary<string, ServiceBusSender> senders = new(StringComparer.OrdinalIgnoreCase);
+
     public async Task SendAsync(string queueName, QueuedIntegrationMessage message, CancellationToken cancellationToken)
     {
-        var connectionString = configuration["ServiceBusConnection"];
-
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            throw new InvalidOperationException("The ServiceBusConnection setting is required to dispatch integration messages.");
-        }
-
-        await using var client = new ServiceBusClient(connectionString);
-        var sender = client.CreateSender(queueName);
+        var sender = senders.GetOrAdd(queueName, client.CreateSender);
         var serviceBusMessage = new ServiceBusMessage(BinaryData.FromString(JsonSerializer.Serialize(message)))
         {
             MessageId = $"{message.IntegrationEntryId}:{message.EventType}",
@@ -30,4 +24,14 @@ public sealed class QueueMessageSender(IConfiguration configuration) : IQueueMes
 
         await sender.SendMessageAsync(serviceBusMessage, cancellationToken);
     }
+
+    public async ValueTask DisposeAsync()
+    {
+        foreach (var sender in senders.Values)
+        {
+            await sender.DisposeAsync();
+        }
+
+        senders.Clear()
+;    }
 }
