@@ -11,4 +11,8 @@
     <ProjectReference Include="..\KulaHub.Data\KulaHub.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.4.0" />
+  </ItemGroup>
+
 </Project>
