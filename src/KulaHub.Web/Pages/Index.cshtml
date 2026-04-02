@@ -1,0 +1,78 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Contacts";
+}
+
+<div class="page-header">
+    <div>
+        <p class="eyebrow">Multi-tenant CRM</p>
+        <h1>Contacts workspace</h1>
+        <p class="lede">Switch between tenants, inspect contacts, and move into notes and forms for each record.</p>
+    </div>
+    @if (Model.SelectedClientId.HasValue)
+    {
+        <a class="btn btn-primary" asp-page="/Contacts/Create" asp-route-clientId="@Model.SelectedClientId.Value">Create contact</a>
+    }
+</div>
+
+<div class="panel mb-4">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-5 col-lg-4">
+            <label for="clientId" class="form-label">Tenant</label>
+            <select id="clientId" name="clientId" class="form-select" onchange="this.form.submit()">
+                @foreach (var client in Model.Clients)
+                {
+                    <option value="@client.ClientId" selected="@(client.ClientId == Model.SelectedClientId)">@client.Name (@client.ClientId)</option>
+                }
+            </select>
+        </div>
+    </form>
+</div>
+
+<div class="panel">
+    <div class="panel-heading">
+        <h2 class="section-title">Contact list</h2>
+        @if (Model.SelectedClientId.HasValue)
+        {
+            <span class="meta-chip">Client ID @Model.SelectedClientId.Value</span>
+        }
+    </div>
+
+    @if (!Model.Contacts.Any())
+    {
+        <p class="empty-state">No contacts exist for this tenant yet.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle workspace-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Organisation</th>
+                        <th>Notes</th>
+                        <th>Forms</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var contact in Model.Contacts)
+                {
+                    <tr>
+                        <td>@contact.FullName</td>
+                        <td>@contact.Email</td>
+                        <td>@contact.OrganisationName</td>
+                        <td>@contact.NoteCount</td>
+                        <td>@contact.FormCount</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-primary" asp-page="/Contacts/Details" asp-route-clientId="@Model.SelectedClientId" asp-route-contactId="@contact.ContactId">Open</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

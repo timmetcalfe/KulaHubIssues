@@ -16,6 +16,36 @@
 				"isDefault": true
 			},
 			"detail": "Builds the Database SQL project"
+		},
+		{
+			"label": "Run KulaHub API",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"run",
+				"--project",
+				"src/KulaHub.Api/KulaHub.Api.csproj",
+				"--launch-profile",
+				"http"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run KulaHub API Live",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"run",
+				"--project",
+				"src/KulaHub.Api/KulaHub.Api.csproj",
+				"--launch-profile",
+				"http"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
 		}
 	]
 }

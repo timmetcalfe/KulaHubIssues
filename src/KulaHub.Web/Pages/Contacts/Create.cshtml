@@ -1,0 +1,62 @@
+@page "{clientId:int}"
+@model KulaHub.Web.Pages.Contacts.CreateModel
+@{
+    ViewData["Title"] = "Create Contact";
+}
+
+<div class="page-header">
+    <div>
+        <p class="eyebrow">Tenant workspace</p>
+        <h1>Create a contact</h1>
+        <p class="lede">Add a contact for the selected tenant. Saving the contact will also create an IntegrationInbox entry.</p>
+    </div>
+    <a class="btn btn-outline-secondary" asp-page="/Index" asp-route-clientId="@Model.ClientId">Back to contacts</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="panel">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Input.FirstName" class="form-label"></label>
+                        <input asp-for="Input.FirstName" class="form-control" />
+                        <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Input.LastName" class="form-label"></label>
+                        <input asp-for="Input.LastName" class="form-control" />
+                        <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Input.Email" class="form-label"></label>
+                        <input asp-for="Input.Email" class="form-control" />
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Input.Postcode" class="form-label"></label>
+                        <input asp-for="Input.Postcode" class="form-control" />
+                        <span asp-validation-for="Input.Postcode" class="text-danger"></span>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="Input.OrganisationId" class="form-label"></label>
+                        <select asp-for="Input.OrganisationId" asp-items="Model.OrganisationOptions" class="form-select">
+                            <option value="">No organisation</option>
+                        </select>
+                        <span asp-validation-for="Input.OrganisationId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Create contact</button>
+                    <a class="btn btn-outline-secondary" asp-page="/Index" asp-route-clientId="@Model.ClientId">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

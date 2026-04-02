@@ -19,7 +19,7 @@ VALUES
     2,
     NULL,
     'Trigger test form',
-    'This row should be mirrored to Southridge Retail',
+    'This row should be mirrored to Southbridge Retail',
     'Inserted manually for trigger test',
     CAST('2026-03-12T10:00:00' AS datetime2(7)),
     CAST('2026-03-19T10:00:00' AS datetime2(7)),

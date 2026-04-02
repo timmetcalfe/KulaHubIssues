@@ -1,0 +1,146 @@
+@page "{clientId:int}/{contactId:int}"
+@model KulaHub.Web.Pages.Contacts.DetailsModel
+@{
+    ViewData["Title"] = Model.Contact?.FullName ?? "Contact details";
+}
+
+@if (Model.Contact is null)
+{
+    <div class="alert alert-warning">The requested contact could not be found.</div>
+    <a class="btn btn-outline-secondary" asp-page="/Index" asp-route-clientId="@Model.ClientId">Back to contacts</a>
+}
+else
+{
+    <div class="page-header">
+        <div>
+            <p class="eyebrow">Contact workspace</p>
+            <h1>@Model.Contact.FullName</h1>
+            <p class="lede">@Model.Contact.Email @if (!string.IsNullOrWhiteSpace(Model.Contact.OrganisationName)) { <span>· @Model.Contact.OrganisationName</span> }</p>
+        </div>
+        <a class="btn btn-outline-secondary" asp-page="/Index" asp-route-clientId="@Model.ClientId">Back to contacts</a>
+    </div>
+
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="row g-4 align-items-start">
+        <div class="col-lg-7">
+            <div class="panel mb-4">
+                <h2 class="section-title">Notes</h2>
+                @if (Model.Contact.Notes.Count == 0)
+                {
+                    <p class="empty-state">No notes have been added for this contact yet.</p>
+                }
+                else
+                {
+                    <div class="stack-list">
+                        @foreach (var note in Model.Contact.Notes)
+                        {
+                            <article class="stack-item">
+                                <div class="stack-item-meta">@note.CreatedUtc.ToLocalTime():g · @note.CreatedBy</div>
+                                <div>@note.Content</div>
+                            </article>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="panel">
+                <h2 class="section-title">Forms</h2>
+                @if (Model.Contact.Forms.Count == 0)
+                {
+                    <p class="empty-state">No forms have been created for this contact yet.</p>
+                }
+                else
+                {
+                    <div class="stack-list">
+                        @foreach (var form in Model.Contact.Forms)
+                        {
+                            <article class="stack-item">
+                                <div class="stack-item-meta">@form.FormTypeName · @form.CreatedUtc.ToLocalTime():g</div>
+                                @if (!string.IsNullOrWhiteSpace(form.Text1))
+                                {
+                                    <div><strong>Text 1:</strong> @form.Text1</div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(form.Text2))
+                                {
+                                    <div><strong>Text 2:</strong> @form.Text2</div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(form.Text3))
+                                {
+                                    <div><strong>Text 3:</strong> @form.Text3</div>
+                                }
+                                @if (form.DateTime1.HasValue || form.DateTime2.HasValue)
+                                {
+                                    <div class="stack-item-meta">
+                                        @if (form.DateTime1.HasValue)
+                                        {
+                                            <span>Date 1: @form.DateTime1.Value.ToLocalTime():g</span>
+                                        }
+                                        @if (form.DateTime2.HasValue)
+                                        {
+                                            <span class="ms-2">Date 2: @form.DateTime2.Value.ToLocalTime():g</span>
+                                        }
+                                    </div>
+                                }
+                            </article>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="panel mb-4">
+                <h2 class="section-title">Add note</h2>
+                <form method="post" asp-page-handler="AddNote">
+                    <div class="mb-3">
+                        <label asp-for="NoteInput.Content" class="form-label"></label>
+                        <textarea asp-for="NoteInput.Content" class="form-control" rows="5"></textarea>
+                        <span asp-validation-for="NoteInput.Content" class="text-danger"></span>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add note</button>
+                </form>
+            </div>
+
+            <div class="panel">
+                <h2 class="section-title">Add form</h2>
+                <form method="post" asp-page-handler="AddForm">
+                    <div class="mb-3">
+                        <label asp-for="FormInput.FormTypeId" class="form-label"></label>
+                        <select asp-for="FormInput.FormTypeId" asp-items="Model.FormTypeOptions" class="form-select"></select>
+                        <span asp-validation-for="FormInput.FormTypeId" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="FormInput.Text1" class="form-label"></label>
+                        <input asp-for="FormInput.Text1" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="FormInput.Text2" class="form-label"></label>
+                        <input asp-for="FormInput.Text2" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="FormInput.Text3" class="form-label"></label>
+                        <input asp-for="FormInput.Text3" class="form-control" />
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="FormInput.DateTime1" class="form-label"></label>
+                            <input asp-for="FormInput.DateTime1" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="FormInput.DateTime2" class="form-label"></label>
+                            <input asp-for="FormInput.DateTime2" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">Add form</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
