@@ -31,6 +31,7 @@ public sealed class IntegrationProcessingService(
             {
                 dbContext.IntegrationOutbound.Add(new IntegrationOutboundEntry
                 {
+                    CorrelationId = entry.CorrelationId,
                     ClientId = entry.ClientId,
                     OriginType = entry.OriginType,
                     EntityType = entry.EntityType,
@@ -45,6 +46,7 @@ public sealed class IntegrationProcessingService(
             {
                 dbContext.IntegrationInbound.Add(new IntegrationInboundEntry
                 {
+                    CorrelationId = entry.CorrelationId,
                     ClientId = entry.ClientId,
                     OriginType = entry.OriginType,
                     EntityType = entry.EntityType,
@@ -88,7 +90,7 @@ public sealed class IntegrationProcessingService(
             }
 
             var message = new QueuedIntegrationMessage(entry.Id, entry.ClientId, entry.EntityType, entry.EventType, entry.ChangeType, entry.PayloadJson, queueName);
-            await queueMessageSender.SendAsync(queueName, message, cancellationToken);
+            await queueMessageSender.SendAsync(queueName, message, entry.CorrelationId, cancellationToken);
 
             entry.DispatchTarget = queueName;
             entry.DispatchedUtc = DateTime.UtcNow;
@@ -119,7 +121,7 @@ public sealed class IntegrationProcessingService(
             }
 
             var message = new QueuedIntegrationMessage(entry.Id, entry.ClientId, entry.EntityType, entry.EventType, entry.ChangeType, entry.PayloadJson, queueName);
-            await queueMessageSender.SendAsync(queueName, message, cancellationToken);
+            await queueMessageSender.SendAsync(queueName, message, entry.CorrelationId, cancellationToken);
 
             entry.DispatchTarget = queueName;
             entry.DispatchedUtc = DateTime.UtcNow;

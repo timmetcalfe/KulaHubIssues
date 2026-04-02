@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using KulaHub.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -301,6 +302,7 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
     {
         dbContext.IntegrationInbox.Add(new IntegrationInboxEntry
         {
+            CorrelationId = GetCorrelationId(),
             ClientId = clientId,
             OriginType = originType,
             EntityType = entityType,
@@ -309,6 +311,14 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
             PayloadJson = JsonSerializer.Serialize(payload),
             ReceivedUtc = receivedUtc
         });
+    }
+
+    private static string GetCorrelationId()
+    {
+        var traceId = Activity.Current?.TraceId;
+        return traceId is { } currentTraceId && currentTraceId != default
+            ? currentTraceId.ToString()
+            : ActivityTraceId.CreateRandom().ToString();
     }
 
     private async Task EnsureClientExistsAsync(int clientId, CancellationToken cancellationToken)

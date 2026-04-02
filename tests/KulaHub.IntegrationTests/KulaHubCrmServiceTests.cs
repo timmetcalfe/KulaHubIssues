@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using KulaHub.Data;
 using KulaHub.Data.Entities;
 using Microsoft.Data.Sqlite;
@@ -53,6 +54,10 @@ public sealed class KulaHubCrmServiceTests : IAsyncLifetime
     [Fact]
     public async Task CreateContactAsync_PersistsContactAndInboxEntry()
     {
+        using var activity = new Activity("create-contact-request");
+        activity.SetIdFormat(ActivityIdFormat.W3C);
+        activity.Start();
+
         var result = await crmService.CreateContactAsync(
             new CreateContactCommand(4, null, "Ava", "Stone", "ava.stone@southbridge.example", "SR2 5CC"),
             OriginType.ExternalClient);
@@ -66,6 +71,7 @@ public sealed class KulaHubCrmServiceTests : IAsyncLifetime
         Assert.Equal(OriginType.ExternalClient, inboxEntry.OriginType);
         Assert.Equal("Contact", inboxEntry.EntityType);
         Assert.Equal("Contact.Created", inboxEntry.EventType);
+        Assert.Equal(activity.TraceId.ToString(), inboxEntry.CorrelationId);
     }
 
     [Fact]

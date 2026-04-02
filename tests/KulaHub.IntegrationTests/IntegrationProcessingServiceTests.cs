@@ -77,8 +77,8 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
     public async Task ProcessInboxAsync_RoutesMatchingEntriesAndMarksBatchProcessed()
     {
         dbContext.IntegrationInbox.AddRange(
-            CreateInboxEntry(4, OriginType.ExternalClient, "Contact.Created"),
-            CreateInboxEntry(3, OriginType.InternalApp, "Form.Created"),
+            CreateInboxEntry(4, OriginType.ExternalClient, "Contact.Created", correlationId: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+            CreateInboxEntry(3, OriginType.InternalApp, "Form.Created", correlationId: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
             CreateInboxEntry(3, OriginType.ExternalClient, "Ignored.Event"));
         await dbContext.SaveChangesAsync();
 
@@ -93,9 +93,11 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
         Assert.Equal(4, outboundEntry.ClientId);
         Assert.Equal(OriginType.ExternalClient, outboundEntry.OriginType);
         Assert.Equal("Contact.Created", outboundEntry.EventType);
+        Assert.Equal("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", outboundEntry.CorrelationId);
         Assert.Equal(3, inboundEntry.ClientId);
         Assert.Equal(OriginType.InternalApp, inboundEntry.OriginType);
         Assert.Equal("Form.Created", inboundEntry.EventType);
+        Assert.Equal("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", inboundEntry.CorrelationId);
     }
 
     [Fact]
@@ -103,6 +105,7 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
     {
         var outboundEntry = new IntegrationOutboundEntry
         {
+            CorrelationId = "11111111111111111111111111111111",
             ClientId = 4,
             OriginType = OriginType.ExternalClient,
             EntityType = "Contact",
@@ -123,6 +126,7 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
         Assert.Single(queueMessageSender.Messages);
         Assert.Equal("clientid4-outbound", queueMessageSender.Messages[0].QueueName);
         Assert.Equal(reloadedEntry.Id, queueMessageSender.Messages[0].Message.IntegrationEntryId);
+        Assert.Equal("11111111111111111111111111111111", queueMessageSender.Messages[0].CorrelationId);
         Assert.Equal("clientid4-outbound", reloadedEntry.DispatchTarget);
         Assert.NotNull(reloadedEntry.DispatchedUtc);
         Assert.Null(reloadedEntry.ProcessedUtc);
@@ -133,6 +137,7 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
     {
         var inboundEntry = new IntegrationInboundEntry
         {
+            CorrelationId = "22222222222222222222222222222222",
             ClientId = 3,
             OriginType = OriginType.InternalApp,
             EntityType = "Form",
@@ -153,6 +158,7 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
         Assert.Single(queueMessageSender.Messages);
         Assert.Equal("clientid3-inbound", queueMessageSender.Messages[0].QueueName);
         Assert.Equal(reloadedEntry.Id, queueMessageSender.Messages[0].Message.IntegrationEntryId);
+        Assert.Equal("22222222222222222222222222222222", queueMessageSender.Messages[0].CorrelationId);
         Assert.Equal("clientid3-inbound", reloadedEntry.DispatchTarget);
         Assert.NotNull(reloadedEntry.DispatchedUtc);
         Assert.Null(reloadedEntry.ProcessedUtc);
@@ -288,10 +294,11 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
         Assert.NotNull(reloadedInbound.ProcessedUtc);
     }
 
-    private static IntegrationInboxEntry CreateInboxEntry(int clientId, OriginType originType, string eventType)
+    private static IntegrationInboxEntry CreateInboxEntry(int clientId, OriginType originType, string eventType, string? correlationId = null)
     {
         return new IntegrationInboxEntry
         {
+            CorrelationId = correlationId,
             ClientId = clientId,
             OriginType = originType,
             EntityType = eventType.StartsWith("Form", StringComparison.Ordinal) ? "Form" : "Contact",
@@ -305,11 +312,11 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
 
     private sealed class RecordingQueueMessageSender : IQueueMessageSender
     {
-        public List<(string QueueName, QueuedIntegrationMessage Message)> Messages { get; } = [];
+        public List<(string QueueName, QueuedIntegrationMessage Message, string? CorrelationId)> Messages { get; } = [];
 
-        public Task SendAsync(string queueName, QueuedIntegrationMessage message, CancellationToken cancellationToken)
+        public Task SendAsync(string queueName, QueuedIntegrationMessage message, string? correlationId, CancellationToken cancellationToken)
         {
-            Messages.Add((queueName, message));
+            Messages.Add((queueName, message, correlationId));
             return Task.CompletedTask;
         }
     }

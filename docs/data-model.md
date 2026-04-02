@@ -95,6 +95,7 @@ For storing details of changes to rows in certain tables that can be read by a b
 | Column | Type | Nullable | Key | Default | Notes |
 |------|------|------|------|------|------|
 | Id | bigint | No | PK | IDENTITY(1,1) | Primary key |
+| CorrelationId | nvarchar(32) | Yes | | | Shared identifier used to trace a related integration flow across inbox, inbound, and outbound records |
 | ClientId | int | No | | | Client owner |
 | EntityType | nvarchar(100) | No | | | Source entity/table name |
 | EventType | nvarchar(100) | No | | | Event category for downstream handling |
@@ -112,6 +113,7 @@ For storing outbound integration events and payloads that are ready to be proces
 | Column | Type | Nullable | Key | Default | Notes |
 |------|------|------|------|------|------|
 | Id | bigint | No | PK | IDENTITY(1,1) | Primary key |
+| CorrelationId | nvarchar(32) | Yes | | | Shared identifier used to trace a related integration flow across inbox, inbound, and outbound records |
 | ClientId | int | No | | | Client owner |
 | EntityType | nvarchar(100) | No | | | Source entity/table name |
 | EventType | nvarchar(100) | No | | | Event category for downstream handling |
@@ -129,6 +131,7 @@ For storing inbound integration events and payloads received from external syste
 | Column | Type | Nullable | Key | Default | Notes |
 |------|------|------|------|------|------|
 | Id | bigint | No | PK | IDENTITY(1,1) | Primary key |
+| CorrelationId | nvarchar(32) | Yes | | | Shared identifier used to trace a related integration flow across inbox, inbound, and outbound records |
 | ClientId | int | No | | | Client owner |
 | EntityType | nvarchar(100) | No | | | Source entity/table name |
 | EventType | nvarchar(100) | No | | | Event category for downstream handling |
