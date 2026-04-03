@@ -300,9 +300,12 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
 
     private void AddInboxEntry(int clientId, string entityType, string eventType, string changeType, object payload, OriginType originType, DateTime receivedUtc)
     {
+        var traceContext = GetTraceContext();
+
         dbContext.IntegrationInbox.Add(new IntegrationInboxEntry
         {
-            CorrelationId = GetCorrelationId(),
+            CorrelationId = traceContext.CorrelationId,
+            TraceParent = traceContext.TraceParent,
             ClientId = clientId,
             OriginType = originType,
             EntityType = entityType,
@@ -313,12 +316,27 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
         });
     }
 
-    private static string GetCorrelationId()
+    private static (string CorrelationId, string TraceParent) GetTraceContext()
     {
-        var traceId = Activity.Current?.TraceId;
-        return traceId is { } currentTraceId && currentTraceId != default
-            ? currentTraceId.ToString()
-            : ActivityTraceId.CreateRandom().ToString();
+        if (Activity.Current is { } activity && activity.TraceId != default)
+        {
+            var correlationId = activity.TraceId.ToString();
+
+            if (activity.IdFormat == ActivityIdFormat.W3C && !string.IsNullOrWhiteSpace(activity.Id))
+            {
+                return (correlationId, activity.Id);
+            }
+
+            var activitySpanId = activity.SpanId != default
+                ? activity.SpanId
+                : ActivitySpanId.CreateRandom();
+            var traceFlags = activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded) ? "01" : "00";
+            return (correlationId, $"00-{correlationId}-{activitySpanId}-{traceFlags}");
+        }
+
+        var traceId = ActivityTraceId.CreateRandom().ToString();
+        var spanId = ActivitySpanId.CreateRandom();
+        return (traceId, $"00-{traceId}-{spanId}-01");
     }
 
     private async Task EnsureClientExistsAsync(int clientId, CancellationToken cancellationToken)

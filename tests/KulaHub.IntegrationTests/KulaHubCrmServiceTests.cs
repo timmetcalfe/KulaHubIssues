@@ -72,6 +72,7 @@ public sealed class KulaHubCrmServiceTests : IAsyncLifetime
         Assert.Equal("Contact", inboxEntry.EntityType);
         Assert.Equal("Contact.Created", inboxEntry.EventType);
         Assert.Equal(activity.TraceId.ToString(), inboxEntry.CorrelationId);
+        Assert.Equal(activity.Id, inboxEntry.TraceParent);
     }
 
     [Fact]
