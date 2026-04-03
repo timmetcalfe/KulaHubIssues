@@ -30,8 +30,8 @@ public sealed class ConsumerQueueBindingOptions
 public sealed class ProcessingOptions
 {
     public const string SectionName = "ProcessingOptions";
-    public const string SouthbridgeOutboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:SouthbridgeInboundQueueName%";
-    public const string NorthwindInboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:NorthwindOutboundQueueName%";
+    public const string SouthbridgeInboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:SouthbridgeInboundQueueName%";
+    public const string NorthwindOutboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:NorthwindOutboundQueueName%";
 
     public int BatchSize { get; set; } = 50;
 

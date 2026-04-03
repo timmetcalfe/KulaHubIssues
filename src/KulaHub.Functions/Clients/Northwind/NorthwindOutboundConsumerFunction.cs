@@ -1,15 +1,15 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
-namespace KulaHub.Functions.Clients.Southbridge;
+namespace KulaHub.Functions.Clients.Northwind;
 
-public sealed class SouthbridgeOutboundConsumerFunction(
+public sealed class NorthwindOutboundConsumerFunction(
     IntegrationProcessingService processingService,
-    ILogger<SouthbridgeOutboundConsumerFunction> logger)
+    ILogger<NorthwindOutboundConsumerFunction> logger)
 {
-    [Function("SouthbridgeOutboundConsumer")]
+    [Function("NorthwindOutboundConsumer")]
     public async Task RunAsync(
-        [ServiceBusTrigger(ProcessingOptions.SouthbridgeOutboundQueueSetting, Connection = "ServiceBusConnection")]
+        [ServiceBusTrigger(ProcessingOptions.NorthwindOutboundQueueSetting, Connection = "ServiceBusConnection")]
         string message,
         CancellationToken cancellationToken)
     {
