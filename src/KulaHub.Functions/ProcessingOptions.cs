@@ -22,16 +22,16 @@ public sealed class QueueRoutingRule
 
 public sealed class ConsumerQueueBindingOptions
 {
-    public string SouthbridgeOutboundQueueName { get; set; } = "clientid4-outbound";
+    public string SouthbridgeInboundQueueName { get; set; } = "clientid4-inbound";
 
-    public string NorthwindInboundQueueName { get; set; } = "clientid3-inbound";
+    public string NorthwindOutboundQueueName { get; set; } = "clientid3-outbound";
 }
 
 public sealed class ProcessingOptions
 {
     public const string SectionName = "ProcessingOptions";
-    public const string SouthbridgeOutboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:SouthbridgeOutboundQueueName%";
-    public const string NorthwindInboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:NorthwindInboundQueueName%";
+    public const string SouthbridgeOutboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:SouthbridgeInboundQueueName%";
+    public const string NorthwindInboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:NorthwindOutboundQueueName%";
 
     public int BatchSize { get; set; } = 50;
 
@@ -43,7 +43,7 @@ public sealed class ProcessingOptions
         {
             ClientId = 4,
             OriginTypes = [KulaHub.Data.OriginType.ExternalClient],
-            Action = InboxRouteAction.Outbound
+            Action = InboxRouteAction.Inbound
         },
         new()
         {
@@ -63,8 +63,8 @@ public sealed class ProcessingOptions
     [
         new()
         {
-            ClientId = 4,
-            QueueName = "clientid4-outbound"
+            ClientId = 3,
+            QueueName = "clientid3-outbound"
         }
     ];
 
@@ -72,8 +72,8 @@ public sealed class ProcessingOptions
     [
         new()
         {
-            ClientId = 3,
-            QueueName = "clientid3-inbound"
+            ClientId = 4,
+            QueueName = "clientid4-inbound"
         }
     ];
 }

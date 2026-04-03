@@ -1,6 +1,8 @@
 CREATE TABLE [dbo].[IntegrationInbox]
 (
     [Id] BIGINT IDENTITY(1,1) NOT NULL,
+    [CorrelationId] NVARCHAR(32) NULL,
+    [TraceParent] NVARCHAR(55) NULL,
     [ClientId] INT NOT NULL,
     [OriginType] NVARCHAR(50) NOT NULL,
     [EntityType] NVARCHAR(100) NOT NULL,

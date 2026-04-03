@@ -14,6 +14,20 @@ BEGIN
 END;
 GO
 
+IF COL_LENGTH('dbo.IntegrationOutbound', 'CorrelationId') IS NULL
+BEGIN
+    ALTER TABLE dbo.IntegrationOutbound
+    ADD CorrelationId NVARCHAR(32) NULL;
+END;
+GO
+
+IF COL_LENGTH('dbo.IntegrationOutbound', 'TraceParent') IS NULL
+BEGIN
+    ALTER TABLE dbo.IntegrationOutbound
+    ADD TraceParent NVARCHAR(55) NULL;
+END;
+GO
+
 IF COL_LENGTH('dbo.IntegrationOutbound', 'OriginType') IS NULL
 BEGIN
     ALTER TABLE dbo.IntegrationOutbound
@@ -61,6 +75,20 @@ IF COL_LENGTH('dbo.IntegrationInbound', 'DispatchedUtc') IS NULL
 BEGIN
     ALTER TABLE dbo.IntegrationInbound
     ADD DispatchedUtc DATETIME2(7) NULL;
+END;
+GO
+
+IF COL_LENGTH('dbo.IntegrationInbound', 'CorrelationId') IS NULL
+BEGIN
+    ALTER TABLE dbo.IntegrationInbound
+    ADD CorrelationId NVARCHAR(32) NULL;
+END;
+GO
+
+IF COL_LENGTH('dbo.IntegrationInbound', 'TraceParent') IS NULL
+BEGIN
+    ALTER TABLE dbo.IntegrationInbound
+    ADD TraceParent NVARCHAR(55) NULL;
 END;
 GO
 
@@ -131,6 +159,20 @@ IF COL_LENGTH('dbo.IntegrationInbox', 'OriginType') IS NULL
 BEGIN
     ALTER TABLE dbo.IntegrationInbox
     ADD OriginType NVARCHAR(50) NULL;
+END;
+GO
+
+IF COL_LENGTH('dbo.IntegrationInbox', 'CorrelationId') IS NULL
+BEGIN
+    ALTER TABLE dbo.IntegrationInbox
+    ADD CorrelationId NVARCHAR(32) NULL;
+END;
+GO
+
+IF COL_LENGTH('dbo.IntegrationInbox', 'TraceParent') IS NULL
+BEGIN
+    ALTER TABLE dbo.IntegrationInbox
+    ADD TraceParent NVARCHAR(55) NULL;
 END;
 GO
 
