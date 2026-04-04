@@ -38,6 +38,7 @@ Represents the contacts of the CRM system
 |------|------|------|------|------|------|
 | ContactId | int | No | PK | IDENTITY(1,1) | Primary key |
 | ClientId | int | No | FK → Clients.ClientId | | Client owner |
+| SourceContactId | int | Yes | Logical reference → Contacts.ContactId | | Source contact id used for mirrored contacts such as Dealer to Polaris copies |
 | OrganisationId | int | Yes | FK → Organisations.OrganisationId | | Organisation owner |
 | FirstName | nvarchar(50) | Yes | | | |
 | LastName | nvarchar(50) | Yes | | | |
@@ -164,6 +165,7 @@ For storing inbound integration events and payloads received from external syste
 |---|---|---|---|
 | IX_Organisations_ClientId | Organisations | ClientId | Filter organisations by client |
 | IX_Contacts_ClientId | Contacts | ClientId | Filter contacts by client |
+| IX_Contacts_SourceContactId | Contacts | ClientId, SourceContactId | Find mirrored contacts by their source contact id within a client |
 | IX_Contacts_Email | Contacts | ClientId, Email | Look up contacts by email address within a client; filtered where Email IS NOT NULL |
 | IX_Contacts_OrganisationId | Contacts | OrganisationId | Filter contacts by organisation |
 | IX_Notes_ClientId | Notes | ClientId | Filter notes by client |

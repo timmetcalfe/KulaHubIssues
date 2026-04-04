@@ -1,10 +1,12 @@
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using KulaHub.Data;
 using KulaHub.Functions;
+using KulaHub.Functions.Clients.Dealer;
 using Microsoft.Extensions.Azure;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Azure.Functions.Worker.OpenTelemetry;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -34,7 +36,16 @@ builder.Services.AddHttpClient("PolarisOutboundHttpClient", client =>
 {
     client.BaseAddress = new Uri("https://httpbin.org/");
 });
+builder.Services.AddHttpClient("KulaHubApiClient", (serviceProvider, client) =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var baseUrl = configuration["KulaHubApiBaseUrl"]
+        ?? throw new InvalidOperationException("The KulaHubApiBaseUrl setting is required for Dealer contact mirroring.");
+
+    client.BaseAddress = new Uri(baseUrl);
+});
 builder.Services.AddScoped<IntegrationProcessingService>();
+builder.Services.AddScoped<DealerContactMirrorService>();
 builder.Services.AddSingleton<IQueueMessageSender, QueueMessageSender>();
 
 builder.Build().Run();

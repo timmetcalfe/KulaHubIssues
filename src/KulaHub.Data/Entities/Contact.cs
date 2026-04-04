@@ -4,6 +4,7 @@ public sealed class Contact
 {
     public int ContactId { get; set; }
     public int ClientId { get; set; }
+    public int? SourceContactId { get; set; }
     public int? OrganisationId { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }

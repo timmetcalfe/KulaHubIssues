@@ -2,6 +2,7 @@ CREATE TABLE [dbo].[Contacts]
 (
     [ContactId] INT IDENTITY(1,1) NOT NULL,
     [ClientId] INT NOT NULL,
+    [SourceContactId] INT NULL,
     [OrganisationId] INT NULL,
     [FirstName] NVARCHAR(50) NULL,
     [LastName] NVARCHAR(50) NULL,
@@ -20,6 +21,11 @@ GO
 
 CREATE INDEX [IX_Contacts_ClientId]
     ON [dbo].[Contacts] ([ClientId]);
+GO
+
+CREATE INDEX [IX_Contacts_SourceContactId]
+    ON [dbo].[Contacts] ([ClientId], [SourceContactId])
+    WHERE [SourceContactId] IS NOT NULL;
 GO
 
 CREATE INDEX [IX_Contacts_Email]

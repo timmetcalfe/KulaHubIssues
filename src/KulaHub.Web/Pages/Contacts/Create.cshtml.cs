@@ -34,7 +34,7 @@ public sealed class CreateModel(IKulaHubCrmService crmService) : PageModel
         try
         {
             var result = await crmService.CreateContactAsync(
-                new CreateContactCommand(clientId, Input.OrganisationId, Input.FirstName, Input.LastName, Input.Email, Input.Postcode),
+                new CreateContactCommand(clientId, null, Input.OrganisationId, Input.FirstName, Input.LastName, Input.Email, Input.Postcode),
                 OriginType.InternalApp,
                 cancellationToken);
 

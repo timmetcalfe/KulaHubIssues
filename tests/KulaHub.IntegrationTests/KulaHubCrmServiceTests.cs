@@ -59,13 +59,14 @@ public sealed class KulaHubCrmServiceTests : IAsyncLifetime
         activity.Start();
 
         var result = await crmService.CreateContactAsync(
-            new CreateContactCommand(4, null, "Ava", "Stone", "ava.stone@dealer.example", "SR2 5CC"),
+            new CreateContactCommand(4, 4001, null, "Ava", "Stone", "ava.stone@dealer.example", "SR2 5CC"),
             OriginType.ExternalClient);
 
         var contact = await dbContext.Contacts.SingleAsync(item => item.ContactId == result.ContactId);
         var inboxEntry = await dbContext.IntegrationInbox.SingleAsync();
 
         Assert.Equal(4, contact.ClientId);
+        Assert.Equal(4001, contact.SourceContactId);
         Assert.Equal("Ava", contact.FirstName);
         Assert.Equal(nameof(OriginType.ExternalClient), contact.CreatedBy);
         Assert.Equal(OriginType.ExternalClient, inboxEntry.OriginType);
@@ -79,7 +80,7 @@ public sealed class KulaHubCrmServiceTests : IAsyncLifetime
     public async Task AddNoteAsync_PersistsNoteAndInboxEntry()
     {
         var contact = await crmService.CreateContactAsync(
-            new CreateContactCommand(4, null, "Noah", "Foster", "noah.foster@dealer.example", null),
+            new CreateContactCommand(4, null, null, "Noah", "Foster", "noah.foster@dealer.example", null),
             OriginType.InternalApp);
 
         var noteResult = await crmService.AddNoteAsync(

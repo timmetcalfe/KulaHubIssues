@@ -214,3 +214,22 @@ BEGIN
         ON dbo.Notes (ContactId);
 END;
 GO
+
+IF COL_LENGTH('dbo.Contacts', 'SourceContactId') IS NULL
+BEGIN
+    ALTER TABLE dbo.Contacts
+    ADD SourceContactId INT NULL;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'IX_Contacts_SourceContactId'
+      AND object_id = OBJECT_ID('dbo.Contacts'))
+BEGIN
+    CREATE INDEX IX_Contacts_SourceContactId
+        ON dbo.Contacts (ClientId, SourceContactId)
+        WHERE SourceContactId IS NOT NULL;
+END;
+GO

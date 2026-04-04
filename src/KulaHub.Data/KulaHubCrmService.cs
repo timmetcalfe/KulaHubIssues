@@ -155,6 +155,7 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
         var contact = new Contact
         {
             ClientId = command.ClientId,
+            SourceContactId = command.SourceContactId,
             OrganisationId = command.OrganisationId,
             FirstName = TrimToNull(command.FirstName),
             LastName = TrimToNull(command.LastName),
@@ -176,6 +177,7 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
             {
                 contact.ContactId,
                 contact.ClientId,
+                contact.SourceContactId,
                 contact.OrganisationId,
                 contact.FirstName,
                 contact.LastName,

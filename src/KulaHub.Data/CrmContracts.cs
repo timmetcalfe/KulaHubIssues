@@ -49,6 +49,7 @@ public sealed record ContactDetailDto(
 
 public sealed record CreateContactCommand(
     int ClientId,
+    int? SourceContactId,
     int? OrganisationId,
     string? FirstName,
     string? LastName,

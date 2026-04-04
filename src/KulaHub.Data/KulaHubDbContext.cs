@@ -46,6 +46,7 @@ public sealed class KulaHubDbContext(DbContextOptions<KulaHubDbContext> options)
             entity.ToTable("Contacts", "dbo");
             entity.HasKey(x => x.ContactId);
             entity.HasIndex(x => x.ClientId).HasDatabaseName("IX_Contacts_ClientId");
+            entity.HasIndex(x => new { x.ClientId, x.SourceContactId }).HasDatabaseName("IX_Contacts_SourceContactId");
             entity.HasIndex(x => new { x.ClientId, x.Email }).HasDatabaseName("IX_Contacts_Email");
             entity.HasIndex(x => x.OrganisationId).HasDatabaseName("IX_Contacts_OrganisationId");
             entity.Property(x => x.FirstName).HasMaxLength(50);

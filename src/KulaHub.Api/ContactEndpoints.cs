@@ -46,7 +46,7 @@ public static class ContactEndpoints
             {
                 var originType = body.OriginType ?? OriginType.ExternalClient;
                 var result = await crmService.CreateContactAsync(
-                    new CreateContactCommand(clientId, body.OrganisationId, body.FirstName, body.LastName, body.Email, body.Postcode),
+                    new CreateContactCommand(clientId, body.SourceContactId, body.OrganisationId, body.FirstName, body.LastName, body.Email, body.Postcode),
                     originType,
                     cancellationToken);
 
@@ -110,6 +110,7 @@ public static class ContactEndpoints
     }
 
     public sealed record CreateContactBody(
+        int? SourceContactId,
         int? OrganisationId,
         string? FirstName,
         string? LastName,
