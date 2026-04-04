@@ -30,6 +30,10 @@ builder.Services.AddAzureClients(clientBuilder =>
 
 builder.Services.AddKulaHubData(builder.Configuration);
 builder.Services.Configure<ProcessingOptions>(builder.Configuration.GetSection(ProcessingOptions.SectionName));
+builder.Services.AddHttpClient("NorthwindOutboundHttpClient", client =>
+{
+    client.BaseAddress = new Uri("https://httpbin.org/");
+});
 builder.Services.AddScoped<IntegrationProcessingService>();
 builder.Services.AddSingleton<IQueueMessageSender, QueueMessageSender>();
 

@@ -1,5 +1,5 @@
 @KulaHub.Api_HostAddress = http://localhost:5028
-@outboundClientId = 4
+@outboundClientId = 3
 
 ### List clients
 GET {{KulaHub.Api_HostAddress}}/api/clients/
@@ -17,9 +17,9 @@ Accept: application/json
 	"organisationId": null,
 	"firstName": "Taylor",
 	"lastName": "Outbound1",
-	"email": "taylor.outbound7@example.com",
+	"email": "taylor.outbound8@example.com",
 	"postcode": "SW1A 1AA",
-	"originType": "ExternalClient"
+	"originType": "InternalApp"
 }
 
 ###

@@ -39,41 +39,41 @@ public sealed class ProcessingOptions
 
     public List<InboxRoutingRule> InboxRoutingRules { get; set; } =
     [
-        new()
-        {
-            ClientId = 4,
-            OriginTypes = [KulaHub.Data.OriginType.ExternalClient],
-            Action = InboxRouteAction.Inbound
-        },
-        new()
-        {
-            ClientId = 3,
-            OriginTypes =
-            [
-                KulaHub.Data.OriginType.InternalApp,
-                KulaHub.Data.OriginType.BackOfficeUser,
-                KulaHub.Data.OriginType.BatchJob,
-                KulaHub.Data.OriginType.System
-            ],
-            Action = InboxRouteAction.Inbound
-        }
+        // new()
+        // {
+        //     ClientId = 4,
+        //     OriginTypes = [KulaHub.Data.OriginType.ExternalClient],
+        //     Action = InboxRouteAction.Inbound
+        // },
+        // new()
+        // {
+        //     ClientId = 3,
+        //     OriginTypes =
+        //     [
+        //         KulaHub.Data.OriginType.InternalApp,
+        //         KulaHub.Data.OriginType.BackOfficeUser,
+        //         KulaHub.Data.OriginType.BatchJob,
+        //         KulaHub.Data.OriginType.System
+        //     ],
+        //     Action = InboxRouteAction.Inbound
+        // }
     ];
 
     public List<QueueRoutingRule> OutboundQueueRules { get; set; } =
     [
-        new()
-        {
-            ClientId = 3,
-            QueueName = "clientid3-outbound"
-        }
+        // new()
+        // {
+        //     ClientId = 3,
+        //     QueueName = "clientid3-outbound"
+        // }
     ];
 
     public List<QueueRoutingRule> InboundQueueRules { get; set; } =
     [
-        new()
-        {
-            ClientId = 4,
-            QueueName = "clientid4-inbound"
-        }
+        // new()
+        // {
+        //     ClientId = 4,
+        //     QueueName = "clientid4-inbound"
+        // }
     ];
 }
