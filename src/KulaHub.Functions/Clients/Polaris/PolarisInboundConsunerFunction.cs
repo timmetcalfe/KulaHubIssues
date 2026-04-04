@@ -1,15 +1,15 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
-namespace KulaHub.Functions.Clients.Southbridge;
+namespace KulaHub.Functions.Clients.Polaris;
 
-public sealed class SouthbridgeInboundConsumerFunction(
+public sealed class PolarisInboundConsumerFunction(
     IntegrationProcessingService processingService,
-    ILogger<SouthbridgeInboundConsumerFunction> logger)
+    ILogger<PolarisInboundConsumerFunction> logger)
 {
-    [Function("SouthbridgeInboundConsumer")]
+    [Function("PolarisInboundConsumer")]
     public async Task RunAsync(
-        [ServiceBusTrigger(ProcessingOptions.SouthbridgeInboundQueueSetting, Connection = "ServiceBusConnection")]
+        [ServiceBusTrigger(ProcessingOptions.PolarisInboundQueueSetting, Connection = "ServiceBusConnection")]
         string message,
         CancellationToken cancellationToken)
     {

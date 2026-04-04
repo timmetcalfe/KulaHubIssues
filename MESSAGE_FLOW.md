@@ -33,7 +33,7 @@ flowchart TD
     V -->|Yes| W[Send Service Bus message<br/>to clientid4-inbound]
     V -->|No| X[Mark inbound row ignored]
 
-    W --> Y[SouthbridgeInboundConsumer<br/>Service Bus trigger]
+    W --> Y[DealerInboundConsumer<br/>Service Bus trigger]
     Y --> Z[CompleteInboundAsync<br/>mark IntegrationInbound.ProcessedUtc]
 
     R --> AA[PolarisOutboundConsumer<br/>Service Bus trigger]
@@ -49,7 +49,7 @@ flowchart TD
 - `ProcessIntegrationInbox` is the routing step that decides whether an inbox item becomes an outbound message, an inbound message, or is ignored.
 - `DispatchIntegrationOutbound` and `DispatchIntegrationInbound` are separate timer-triggered dispatch stages.
 - The Service Bus consumer functions only complete the relevant integration row after a queue message is received and processed.
-- The current queue names are `clientid4-inbound` for the Southbridge inbound path and `clientid3-outbound` for the Polaris outbound path.
+- The current queue names are `clientid4-inbound` for the Dealer inbound path and `clientid3-outbound` for the Polaris outbound path.
 
 ## Execution Order
 
@@ -65,7 +65,7 @@ sequenceDiagram
     participant InFn as DispatchIntegrationInbound<br/>(30 */1 * * * *)
     participant SBOut as clientid3-outbound
     participant SBIn as clientid4-inbound
-    participant Southbridge as SouthbridgeInboundConsumer
+    participant Dealer as DealerInboundConsumer
     participant Polaris as PolarisOutboundConsumer
 
     API->>DB: Insert business row
@@ -87,8 +87,8 @@ sequenceDiagram
         InFn->>DB: Read undispatched IntegrationInbound batch
         InFn->>SBIn: Send queue message
         InFn->>DB: Set DispatchTarget and DispatchedUtc
-        Southbridge->>SBIn: Receive message
-        Southbridge->>DB: Mark IntegrationInbound.ProcessedUtc
+        Dealer->>SBIn: Receive message
+        Dealer->>DB: Mark IntegrationInbound.ProcessedUtc
     else No route matched
         InboxFn->>DB: Mark IntegrationInbox.ProcessedUtc only
     end
@@ -142,7 +142,7 @@ stateDiagram-v2
 
     InboundPending --> InboundDispatched: DispatchIntegrationInbound sets\nDispatchedUtc + DispatchTarget
     InboundPending --> InboundIgnored: No inbound queue rule\nProcessedUtc set
-    InboundDispatched --> InboundProcessed: SouthbridgeInboundConsumer sets\nProcessedUtc
+    InboundDispatched --> InboundProcessed: DealerInboundConsumer sets\nProcessedUtc
 
     OutboundPending --> InboxProcessed: Inbox row marked processed
     InboundPending --> InboxProcessed: Inbox row marked processed

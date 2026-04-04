@@ -26,7 +26,7 @@ public sealed class KulaHubCrmServiceTests : IAsyncLifetime
         dbContext.Clients.Add(new Client
         {
             ClientId = 4,
-            Name = "Southbridge Retail",
+            Name = "Dealer",
             CreatedUtc = DateTime.UtcNow,
             CreatedBy = "test"
         });
@@ -59,7 +59,7 @@ public sealed class KulaHubCrmServiceTests : IAsyncLifetime
         activity.Start();
 
         var result = await crmService.CreateContactAsync(
-            new CreateContactCommand(4, null, "Ava", "Stone", "ava.stone@southbridge.example", "SR2 5CC"),
+            new CreateContactCommand(4, null, "Ava", "Stone", "ava.stone@dealer.example", "SR2 5CC"),
             OriginType.ExternalClient);
 
         var contact = await dbContext.Contacts.SingleAsync(item => item.ContactId == result.ContactId);
@@ -79,7 +79,7 @@ public sealed class KulaHubCrmServiceTests : IAsyncLifetime
     public async Task AddNoteAsync_PersistsNoteAndInboxEntry()
     {
         var contact = await crmService.CreateContactAsync(
-            new CreateContactCommand(4, null, "Noah", "Foster", "noah.foster@southbridge.example", null),
+            new CreateContactCommand(4, null, "Noah", "Foster", "noah.foster@dealer.example", null),
             OriginType.InternalApp);
 
         var noteResult = await crmService.AddNoteAsync(

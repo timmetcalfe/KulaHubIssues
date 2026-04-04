@@ -20,22 +20,25 @@ public sealed class QueueRoutingRule
     public string QueueName { get; set; } = string.Empty;
 }
 
-public sealed class ConsumerQueueBindingOptions
-{
-    public string SouthbridgeInboundQueueName { get; set; } = "clientid4-inbound";
+// public sealed class ConsumerQueueBindingOptions
+// {
+//     // public string DealerInboundQueueName { get; set; } = "clientid4-inbound";
 
-    public string PolarisOutboundQueueName { get; set; } = "clientid3-outbound";
-}
+//     // public string PolarisOutboundQueueName { get; set; } = "polaris-outbound";
+
+//     // public string PolarisInboundQueueName { get; set; } = "polaris-inbound";
+// }
 
 public sealed class ProcessingOptions
 {
     public const string SectionName = "ProcessingOptions";
-    public const string SouthbridgeInboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:SouthbridgeInboundQueueName%";
+    public const string DealerInboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:DealerInboundQueueName%";
     public const string PolarisOutboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:PolarisOutboundQueueName%";
+    public const string PolarisInboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:PolarisInboundQueueName%";
 
     public int BatchSize { get; set; } = 50;
 
-    public ConsumerQueueBindingOptions ConsumerQueueBindings { get; set; } = new();
+    //public ConsumerQueueBindingOptions ConsumerQueueBindings { get; set; } = new();
 
     public List<InboxRoutingRule> InboxRoutingRules { get; set; } =
     [

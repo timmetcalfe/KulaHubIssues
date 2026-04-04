@@ -1,5 +1,5 @@
 @KulaHub.Api_HostAddress = http://localhost:5028
-@clientId = 3
+@clientId = 4
 
 ### List clients
 GET {{KulaHub.Api_HostAddress}}/api/clients/
@@ -7,7 +7,7 @@ Accept: application/json
 
 ###
 
-### Create contact for Southbridge Retail (ClientId 4)
+### Create contact for Dealer (ClientId 4)
 ### Use OriginType ExternalClient so the Functions app routes it to the outbound path.
 POST {{KulaHub.Api_HostAddress}}/api/clients/{{clientId}}/contacts
 Content-Type: application/json
@@ -16,15 +16,15 @@ Accept: application/json
 {
 	"organisationId": null,
 	"firstName": "Taylor",
-	"lastName": "Outbound1",
-	"email": "taylor.outbound8@example.com",
+	"lastName": "Inbound1",
+	"email": "taylor.inbound10@example.com",
 	"postcode": "SW1A 1AA",
 	"originType": "InternalApp"
 }
 
 ###
 
-### List contacts for Southbridge Retail after creating one
+### List contacts for Dealer after creating one
 GET {{KulaHub.Api_HostAddress}}/api/clients/{{outboundClientId}}/contacts
 Accept: application/json
 
