@@ -24,23 +24,23 @@ flowchart TD
     M --> O[DispatchIntegrationOutbound timer function<br/>every minute at second 15]
     O --> P[IntegrationProcessingService.DispatchOutboundAsync]
     P --> Q{Outbound queue rule found?}
-    Q -->|Yes| R[Send Service Bus message<br/>to clientid4-outbound]
+    Q -->|Yes| R[Send Service Bus message<br/>to clientid3-outbound]
     Q -->|No| S[Mark outbound row ignored]
 
     N --> T[DispatchIntegrationInbound timer function<br/>every minute at second 30]
     T --> U[IntegrationProcessingService.DispatchInboundAsync]
     U --> V{Inbound queue rule found?}
-    V -->|Yes| W[Send Service Bus message<br/>to clientid3-inbound]
+    V -->|Yes| W[Send Service Bus message<br/>to clientid4-inbound]
     V -->|No| X[Mark inbound row ignored]
 
-    R --> Y[SouthbridgeOutboundConsumer<br/>Service Bus trigger]
-    Y --> Z[CompleteOutboundAsync<br/>mark IntegrationOutbound.ProcessedUtc]
+    W --> Y[SouthbridgeInboundConsumer<br/>Service Bus trigger]
+    Y --> Z[CompleteInboundAsync<br/>mark IntegrationInbound.ProcessedUtc]
 
-    W --> AA[NorthwindInboundConsumer<br/>Service Bus trigger]
-    AA --> AB[CompleteInboundAsync<br/>mark IntegrationInbound.ProcessedUtc]
+    R --> AA[PolarisOutboundConsumer<br/>Service Bus trigger]
+    AA --> AB[CompleteOutboundAsync<br/>mark IntegrationOutbound.ProcessedUtc]
 
-    AC[Current configured examples] --> AD[ClientId 4 + ExternalClient -> outbound]
-    AC --> AE[ClientId 3 + InternalApp/BackOfficeUser/BatchJob/System -> inbound]
+    AC[Current configured examples] --> AD[ClientId 4 + ExternalClient -> inbound]
+    AC --> AE[ClientId 3 + InternalApp/BackOfficeUser/BatchJob/System -> outbound]
 ```
 
 ## Notes
@@ -49,7 +49,7 @@ flowchart TD
 - `ProcessIntegrationInbox` is the routing step that decides whether an inbox item becomes an outbound message, an inbound message, or is ignored.
 - `DispatchIntegrationOutbound` and `DispatchIntegrationInbound` are separate timer-triggered dispatch stages.
 - The Service Bus consumer functions only complete the relevant integration row after a queue message is received and processed.
-- The current queue names are `clientid4-outbound` for the Southbridge outbound path and `clientid3-inbound` for the Northwind inbound path.
+- The current queue names are `clientid4-inbound` for the Southbridge inbound path and `clientid3-outbound` for the Polaris outbound path.
 
 ## Execution Order
 
@@ -63,10 +63,10 @@ sequenceDiagram
     participant InboxFn as ProcessIntegrationInbox<br/>(0 */1 * * * *)
     participant OutFn as DispatchIntegrationOutbound<br/>(15 */1 * * * *)
     participant InFn as DispatchIntegrationInbound<br/>(30 */1 * * * *)
-    participant SBOut as clientid4-outbound
-    participant SBIn as clientid3-inbound
-    participant Southbridge as SouthbridgeOutboundConsumer
-    participant Northwind as NorthwindInboundConsumer
+    participant SBOut as clientid3-outbound
+    participant SBIn as clientid4-inbound
+    participant Southbridge as SouthbridgeInboundConsumer
+    participant Polaris as PolarisOutboundConsumer
 
     API->>DB: Insert business row
     API->>DB: Insert IntegrationInbox row
@@ -79,16 +79,16 @@ sequenceDiagram
         OutFn->>DB: Read undispatched IntegrationOutbound batch
         OutFn->>SBOut: Send queue message
         OutFn->>DB: Set DispatchTarget and DispatchedUtc
-        Southbridge->>SBOut: Receive message
-        Southbridge->>DB: Mark IntegrationOutbound.ProcessedUtc
+        Polaris->>SBOut: Receive message
+        Polaris->>DB: Mark IntegrationOutbound.ProcessedUtc
     else Inbound route matched
         InboxFn->>DB: Insert IntegrationInbound row
         InboxFn->>DB: Mark IntegrationInbox.ProcessedUtc
         InFn->>DB: Read undispatched IntegrationInbound batch
         InFn->>SBIn: Send queue message
         InFn->>DB: Set DispatchTarget and DispatchedUtc
-        Northwind->>SBIn: Receive message
-        Northwind->>DB: Mark IntegrationInbound.ProcessedUtc
+        Southbridge->>SBIn: Receive message
+        Southbridge->>DB: Mark IntegrationInbound.ProcessedUtc
     else No route matched
         InboxFn->>DB: Mark IntegrationInbox.ProcessedUtc only
     end
@@ -138,11 +138,11 @@ stateDiagram-v2
 
     OutboundPending --> OutboundDispatched: DispatchIntegrationOutbound sets\nDispatchedUtc + DispatchTarget
     OutboundPending --> OutboundIgnored: No outbound queue rule\nProcessedUtc set
-    OutboundDispatched --> OutboundProcessed: SouthbridgeOutboundConsumer sets\nProcessedUtc
+    OutboundDispatched --> OutboundProcessed: PolarisOutboundConsumer sets\nProcessedUtc
 
     InboundPending --> InboundDispatched: DispatchIntegrationInbound sets\nDispatchedUtc + DispatchTarget
     InboundPending --> InboundIgnored: No inbound queue rule\nProcessedUtc set
-    InboundDispatched --> InboundProcessed: NorthwindInboundConsumer sets\nProcessedUtc
+    InboundDispatched --> InboundProcessed: SouthbridgeInboundConsumer sets\nProcessedUtc
 
     OutboundPending --> InboxProcessed: Inbox row marked processed
     InboundPending --> InboxProcessed: Inbox row marked processed

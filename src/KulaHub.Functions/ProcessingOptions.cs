@@ -24,14 +24,14 @@ public sealed class ConsumerQueueBindingOptions
 {
     public string SouthbridgeInboundQueueName { get; set; } = "clientid4-inbound";
 
-    public string NorthwindOutboundQueueName { get; set; } = "clientid3-outbound";
+    public string PolarisOutboundQueueName { get; set; } = "clientid3-outbound";
 }
 
 public sealed class ProcessingOptions
 {
     public const string SectionName = "ProcessingOptions";
     public const string SouthbridgeInboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:SouthbridgeInboundQueueName%";
-    public const string NorthwindOutboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:NorthwindOutboundQueueName%";
+    public const string PolarisOutboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:PolarisOutboundQueueName%";
 
     public int BatchSize { get; set; } = 50;
 

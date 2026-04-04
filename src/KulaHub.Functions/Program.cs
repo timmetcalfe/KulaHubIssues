@@ -30,7 +30,7 @@ builder.Services.AddAzureClients(clientBuilder =>
 
 builder.Services.AddKulaHubData(builder.Configuration);
 builder.Services.Configure<ProcessingOptions>(builder.Configuration.GetSection(ProcessingOptions.SectionName));
-builder.Services.AddHttpClient("NorthwindOutboundHttpClient", client =>
+builder.Services.AddHttpClient("PolarisOutboundHttpClient", client =>
 {
     client.BaseAddress = new Uri("https://httpbin.org/");
 });

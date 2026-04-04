@@ -2,22 +2,22 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 
-namespace KulaHub.Functions.Clients.Northwind;
+namespace KulaHub.Functions.Clients.Polaris;
 
-public sealed class NorthwindOutboundConsumerFunction(
+public sealed class PolarisOutboundConsumerFunction(
     IntegrationProcessingService processingService,
     IHttpClientFactory httpClientFactory,
-    ILogger<NorthwindOutboundConsumerFunction> logger)
+    ILogger<PolarisOutboundConsumerFunction> logger)
 {
-    [Function("NorthwindOutboundConsumer")]
+    [Function("PolarisOutboundConsumer")]
     public async Task RunAsync(
-        [ServiceBusTrigger(ProcessingOptions.NorthwindOutboundQueueSetting, Connection = "ServiceBusConnection")]
+        [ServiceBusTrigger(ProcessingOptions.PolarisOutboundQueueSetting, Connection = "ServiceBusConnection")]
         string message,
         CancellationToken cancellationToken)
     {
         var payload = IntegrationFunctionMessageSerializer.Deserialize(message);
 
-        var httpClient = httpClientFactory.CreateClient("NorthwindOutboundHttpClient");
+        var httpClient = httpClientFactory.CreateClient("PolarisOutboundHttpClient");
         using var response = await httpClient.PostAsJsonAsync(
             "anything",
             new

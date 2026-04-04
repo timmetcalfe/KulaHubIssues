@@ -24,7 +24,7 @@ Prepare and implement a .NET 10 multi-project CRM sample for Azure App Service, 
 - Keep authentication out of scope for the first version.
 - Use direct queue routing for outbound events when a rule resolves a single destination.
 - Use ID-based queue names such as `clientid4-outbound`.
-- Seed sample routing around Southbridge Retail (ClientId 4) and Northwind Advisory (ClientId 3).
+- Seed sample routing around Southbridge Retail (ClientId 4) and Polaris Advisory (ClientId 3).
 
 ## Current Execution Plan
 

@@ -15,7 +15,7 @@ Build the solution in phases around a shared EF Core data layer, three host appl
 - Allow contact creation in the Razor Pages UI.
 - Add separate dispatch and completion state for IntegrationOutbound and IntegrationInbound.
 - Use configuration-driven sample routing rules.
-- Keep the existing tenant records as Northwind Advisory (ClientId 3) and Southbridge Retail (ClientId 4).
+- Keep the existing tenant records as Polaris Advisory (ClientId 3) and Southbridge Retail (ClientId 4).
 - Keep queue names ID-based, for example `clientid4-outbound`.
 - Route outbound events directly to the target queue when the rule determines a single destination.
 
@@ -34,7 +34,7 @@ Build the solution in phases around a shared EF Core data layer, three host appl
 6. Implement background processing.
    Add timer-triggered processing for IntegrationInbox, IntegrationOutbound, and IntegrationInbound plus Service Bus-triggered handlers for sample client-specific consumers.
 7. Implement sample routing behavior.
-   Use config-driven rules seeded around Southbridge Retail (ClientId 4) outbound and Northwind Advisory (ClientId 3) inbound, with direct queue routing for outbound processing.
+   Use config-driven rules seeded around Southbridge Retail (ClientId 4) inbound and Polaris Advisory (ClientId 3) outbound, with direct queue routing for outbound processing.
 8. Prepare Azure deployment assets.
    Create AZD and Bicep assets for Azure SQL, Service Bus, one Function App, one Web API host, and one Razor web app host.
 9. Add seed data and local developer workflow.

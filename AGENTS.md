@@ -24,8 +24,8 @@ Purpose: To process rows in the IntegrationOutbound table that have not been dis
 ## Azure Function app with timer trigger for processing IntegrationInbound events in the IntegrationInbound table.
 Purpose: To process rows in the IntegrationInbound table that have not been dispatched and send them to the relevant Azure Service Bus queue.
 
-## Azure Function app to read from a queue for outbound events for a client called Southbridge Retail
-Purpose: To read messages from a queue for outbound events and once processed, mark the corresponding row in IntegrationOutbound table as processed.
-
-## Azure Function app to read from a queue for inbound events for a client called Northwind Advisory
+## Azure Function app to read from a queue for inbound events for a client called Southbridge Retail
 Purpose: To read messages from a queue for inbound events and once processed, mark the corresponding row in IntegrationInbound table as processed.
+
+## Azure Function app to read from a queue for outbound events for a client called Polaris Advisory
+Purpose: To read messages from a queue for outbound events and once processed, mark the corresponding row in IntegrationOutbound table as processed.

@@ -9,7 +9,7 @@ GO
 
 INSERT INTO dbo.Clients (ClientId, Name, Postcode, CreatedBy)
 VALUES
-    (3, 'Northwind Advisory', 'NW1 6XE', 'seed-data'),
+    (3, 'Polaris Advisory', 'NW1 6XE', 'seed-data'),
     (4, 'Southbridge Retail', 'SR2 4PL', 'seed-data');
 GO
 
@@ -19,9 +19,9 @@ GO
 INSERT INTO dbo.Organisations (ClientId, Name, Postcode, CreatedBy)
 SELECT client_lookup.ClientId, organisation_seed.Name, organisation_seed.Postcode, 'seed-data'
 FROM (VALUES
-    ('Northwind Advisory', 'Unassigned mirrored forms', NULL),
-    ('Northwind Advisory', 'Northwind Holdings', 'NW1 7AA'),
-    ('Northwind Advisory', 'Northwind Services', 'NW1 8BB'),
+    ('Polaris Advisory', 'Unassigned mirrored forms', NULL),
+    ('Polaris Advisory', 'Polaris Holdings', 'NW1 7AA'),
+    ('Polaris Advisory', 'Polaris Services', 'NW1 8BB'),
     ('Southbridge Retail', 'Unassigned mirrored forms', NULL),
     ('Southbridge Retail', 'Southbridge Manufacturing', 'SR2 5CC'),
     ('Southbridge Retail', 'Southbridge Logistics', 'SR2 6DD')
@@ -40,10 +40,10 @@ SELECT
     contact_seed.Postcode,
     'seed-data'
 FROM (VALUES
-    ('Northwind Advisory', 'Northwind Holdings', 'Alice', 'Bennett', 'alice.bennett@northwind.example', 'NW1 7AA'),
-    ('Northwind Advisory', 'Northwind Holdings', 'Daniel', 'Cooper', 'daniel.cooper@northwind.example', 'NW1 7AA'),
-    ('Northwind Advisory', 'Northwind Services', 'Priya', 'Shah', 'priya.shah@northwind.example', 'NW1 8BB'),
-    ('Northwind Advisory', 'Northwind Services', 'Marcus', 'Reed', 'marcus.reed@northwind.example', 'NW1 8BB'),
+    ('Polaris Advisory', 'Polaris Holdings', 'Alice', 'Bennett', 'alice.bennett@polaris.example', 'NW1 7AA'),
+    ('Polaris Advisory', 'Polaris Holdings', 'Daniel', 'Cooper', 'daniel.cooper@polaris.example', 'NW1 7AA'),
+    ('Polaris Advisory', 'Polaris Services', 'Priya', 'Shah', 'priya.shah@polaris.example', 'NW1 8BB'),
+    ('Polaris Advisory', 'Polaris Services', 'Marcus', 'Reed', 'marcus.reed@polaris.example', 'NW1 8BB'),
     ('Southbridge Retail', 'Southbridge Manufacturing', 'Sophie', 'Turner', 'sophie.turner@southbridge.example', 'SR2 5CC'),
     ('Southbridge Retail', 'Southbridge Manufacturing', 'Leo', 'Watson', 'leo.watson@southbridge.example', 'SR2 5CC'),
     ('Southbridge Retail', 'Southbridge Logistics', 'Grace', 'Mitchell', 'grace.mitchell@southbridge.example', 'SR2 6DD'),
@@ -59,7 +59,7 @@ GO
 INSERT INTO dbo.FormTypes (ClientId, Name, CreatedBy)
 SELECT client_lookup.ClientId, form_type_seed.Name, 'seed-data'
 FROM (VALUES
-    ('Northwind Advisory', 'Sales form'),
+    ('Polaris Advisory', 'Sales form'),
     ('Southbridge Retail', 'Sales form')
 ) AS form_type_seed (ClientName, Name)
 INNER JOIN dbo.Clients AS client_lookup
@@ -87,7 +87,7 @@ INNER JOIN dbo.FormTypes AS target_form_type
 INNER JOIN dbo.Organisations AS target_placeholder_organisation
     ON target_placeholder_organisation.ClientId = target_client.ClientId
    AND target_placeholder_organisation.Name = 'Unassigned mirrored forms'
-WHERE source_client.Name = 'Northwind Advisory';
+WHERE source_client.Name = 'Polaris Advisory';
 GO
 
 INSERT INTO dbo.Forms (ClientId, FormTypeId, OrganisationId, ContactId, Text1, Text2, DateTime1, DateTime2, CreatedBy)
@@ -102,8 +102,8 @@ SELECT
     form_seed.DateTime2,
     'seed-data'
 FROM (VALUES
-    ('Northwind Advisory', 'Sales form', 'Northwind Holdings', NULL, 'Initial sales qualification', 'Pipeline stage: Discovery', CAST('2026-03-01T09:00:00' AS datetime2(7)), CAST('2026-03-08T14:00:00' AS datetime2(7))),
-    ('Northwind Advisory', 'Sales form', NULL, 'priya.shah@northwind.example', 'Follow-up call outcome', 'Interested in annual contract', CAST('2026-03-03T11:30:00' AS datetime2(7)), CAST('2026-03-10T16:15:00' AS datetime2(7))),
+    ('Polaris Advisory', 'Sales form', 'Polaris Holdings', NULL, 'Initial sales qualification', 'Pipeline stage: Discovery', CAST('2026-03-01T09:00:00' AS datetime2(7)), CAST('2026-03-08T14:00:00' AS datetime2(7))),
+    ('Polaris Advisory', 'Sales form', NULL, 'priya.shah@polaris.example', 'Follow-up call outcome', 'Interested in annual contract', CAST('2026-03-03T11:30:00' AS datetime2(7)), CAST('2026-03-10T16:15:00' AS datetime2(7))),
     ('Southbridge Retail', 'Sales form', 'Southbridge Manufacturing', NULL, 'Initial sales qualification', 'Pipeline stage: Proposal', CAST('2026-03-02T10:15:00' AS datetime2(7)), CAST('2026-03-09T15:45:00' AS datetime2(7))),
     ('Southbridge Retail', 'Sales form', NULL, 'noah.foster@southbridge.example', 'Follow-up call outcome', 'Requested pricing review', CAST('2026-03-04T13:00:00' AS datetime2(7)), CAST('2026-03-11T09:30:00' AS datetime2(7)))
 ) AS form_seed (ClientName, FormTypeName, OrganisationName, ContactEmail, Text1, Text2, DateTime1, DateTime2)
@@ -127,8 +127,8 @@ SELECT
     note_seed.Content,
     'seed-data'
 FROM (VALUES
-    ('Northwind Advisory', 'alice.bennett@northwind.example', 'Initial introductory call completed. Interested in a quarterly review.'),
-    ('Northwind Advisory', 'priya.shah@northwind.example', 'Requested a proposal summary before the next steering meeting.'),
+    ('Polaris Advisory', 'alice.bennett@polaris.example', 'Initial introductory call completed. Interested in a quarterly review.'),
+    ('Polaris Advisory', 'priya.shah@polaris.example', 'Requested a proposal summary before the next steering meeting.'),
     ('Southbridge Retail', 'sophie.turner@southbridge.example', 'Waiting for pricing confirmation from procurement.'),
     ('Southbridge Retail', 'noah.foster@southbridge.example', 'Confirmed follow-up workshop for next week.')
 ) AS note_seed (ClientName, ContactEmail, Content)
