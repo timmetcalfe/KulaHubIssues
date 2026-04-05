@@ -98,6 +98,7 @@ public sealed class DealerContactMirrorServiceTests : IAsyncLifetime
         Assert.Equal("Doe", body.LastName);
         Assert.Equal("jane@example.com", body.Email);
         Assert.Equal("AB12 3CD", body.Postcode);
+        Assert.Equal("Dealer", body.SourceSystemKey);
         Assert.Equal(OriginType.InternalApp, body.OriginType);
     }
 
@@ -194,6 +195,7 @@ public sealed class DealerContactMirrorServiceTests : IAsyncLifetime
         string? LastName,
         string? Email,
         string? Postcode,
+        string? SourceSystemKey,
         OriginType OriginType);
 
     private sealed class RecordingHandler : HttpMessageHandler

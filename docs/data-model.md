@@ -99,6 +99,30 @@ For storing details of changes to rows in certain tables that can be read by a b
 | CorrelationId | nvarchar(32) | Yes | | | Shared identifier used to trace a related integration flow across inbox, inbound, and outbound records |
 | TraceParent | nvarchar(55) | Yes | | | W3C traceparent value preserved so downstream dispatch can reuse the original parent span |
 | ClientId | int | No | | | Client owner |
+| OriginType | nvarchar(50) | No | | | Captures whether the event originated externally or internally |
+| SourceSystemKey | nvarchar(100) | Yes | | | Optional external system identifier used for routing and loop prevention |
+| EntityType | nvarchar(100) | No | | | Source entity/table name |
+| EventType | nvarchar(100) | No | | | Event category for downstream handling |
+| ChangeType | nvarchar(50) | No | | | Type of change captured for the event |
+| ExternalEntityId | nvarchar(100) | Yes | | | External system identifier when applicable |
+| PayloadJson | nvarchar(max) | No | | | Raw payload captured for downstream processing |
+| ReceivedUtc | datetime2 | No | | SYSUTCDATETIME() | When the change was received |
+| ProcessedUtc | datetime2 | Yes | | | When the inbox event has been classified and routed or ignored |
+
+### IntegrationDispatch
+For storing routed integration work items that are ready to be dispatched to a queue or have been completed by a queue consumer.
+
+| Column | Type | Nullable | Key | Default | Notes |
+|------|------|------|------|------|------|
+| Id | bigint | No | PK | IDENTITY(1,1) | Primary key |
+| IntegrationInboxId | bigint | No | Logical reference → IntegrationInbox.Id | | The source inbox event that produced this dispatch row |
+| CorrelationId | nvarchar(32) | Yes | | | Shared identifier used to trace a related integration flow across inbox, inbound, and outbound records |
+| TraceParent | nvarchar(55) | Yes | | | W3C traceparent value preserved from the originating request for downstream message correlation |
+| ClientId | int | No | | | Client owner |
+| Disposition | nvarchar(50) | No | | | Logical routing classification such as Inbound or Outbound |
+| OriginType | nvarchar(50) | No | | | Original origin classification copied from IntegrationInbox |
+| SourceSystemKey | nvarchar(100) | Yes | | | Optional external system identifier copied from IntegrationInbox |
+| QueueKey | nvarchar(100) | No | | | Logical routing output used to resolve a physical queue binding |
 | EntityType | nvarchar(100) | No | | | Source entity/table name |
 | EventType | nvarchar(100) | No | | | Event category for downstream handling |
 | ChangeType | nvarchar(50) | No | | | Type of change captured for the event |
@@ -107,42 +131,6 @@ For storing details of changes to rows in certain tables that can be read by a b
 | ReceivedUtc | datetime2 | No | | SYSUTCDATETIME() | When the change was received |
 | DispatchedUtc | datetime2 | Yes | | | When the event was dispatched to Service Bus |
 | DispatchTarget | nvarchar(200) | Yes | | | Queue or topic name used for dispatch |
-| ProcessedUtc | datetime2 | Yes | | | When downstream processing completed |
-
-### IntegrationOutbound
-For storing outbound integration events and payloads that are ready to be processed or have been sent to external systems.
-
-| Column | Type | Nullable | Key | Default | Notes |
-|------|------|------|------|------|------|
-| Id | bigint | No | PK | IDENTITY(1,1) | Primary key |
-| CorrelationId | nvarchar(32) | Yes | | | Shared identifier used to trace a related integration flow across inbox, inbound, and outbound records |
-| TraceParent | nvarchar(55) | Yes | | | W3C traceparent value preserved from the originating request for downstream message correlation |
-| ClientId | int | No | | | Client owner |
-| EntityType | nvarchar(100) | No | | | Source entity/table name |
-| EventType | nvarchar(100) | No | | | Event category for downstream handling |
-| ChangeType | nvarchar(50) | No | | | Type of change captured for the event |
-| ExternalEntityId | nvarchar(100) | Yes | | | External system identifier when applicable |
-| PayloadJson | nvarchar(max) | No | | | Raw payload captured for downstream processing |
-| ReceivedUtc | datetime2 | No | | SYSUTCDATETIME() | When the change was received |
-| DispatchedUtc | datetime2 | Yes | | | When the event was dispatched to Service Bus |
-| DispatchTarget | nvarchar(200) | Yes | | | Queue or topic name used for dispatch |
-| ProcessedUtc | datetime2 | Yes | | | When downstream processing completed |
-
-### IntegrationInbound
-For storing inbound integration events and payloads received from external systems before or after processing.
-
-| Column | Type | Nullable | Key | Default | Notes |
-|------|------|------|------|------|------|
-| Id | bigint | No | PK | IDENTITY(1,1) | Primary key |
-| CorrelationId | nvarchar(32) | Yes | | | Shared identifier used to trace a related integration flow across inbox, inbound, and outbound records |
-| TraceParent | nvarchar(55) | Yes | | | W3C traceparent value preserved from the originating request for downstream message correlation |
-| ClientId | int | No | | | Client owner |
-| EntityType | nvarchar(100) | No | | | Source entity/table name |
-| EventType | nvarchar(100) | No | | | Event category for downstream handling |
-| ChangeType | nvarchar(50) | No | | | Type of change captured for the event |
-| ExternalEntityId | nvarchar(100) | Yes | | | External system identifier when applicable |
-| PayloadJson | nvarchar(max) | No | | | Raw payload captured for downstream processing |
-| ReceivedUtc | datetime2 | No | | SYSUTCDATETIME() | When the change was received |
 | ProcessedUtc | datetime2 | Yes | | | When downstream processing completed |
 
 

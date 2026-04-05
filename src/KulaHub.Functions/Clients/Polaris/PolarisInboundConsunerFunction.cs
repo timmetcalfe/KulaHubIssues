@@ -9,12 +9,12 @@ public sealed class PolarisInboundConsumerFunction(
 {
     [Function("PolarisInboundConsumer")]
     public async Task RunAsync(
-        [ServiceBusTrigger(ProcessingOptions.PolarisInboundQueueSetting, Connection = "ServiceBusConnection")]
+        [ServiceBusTrigger(ProcessingOptions.PolarisImportProcessingQueueSetting, Connection = "ServiceBusConnection")]
         string message,
         CancellationToken cancellationToken)
     {
         var payload = IntegrationFunctionMessageSerializer.Deserialize(message);
-        await processingService.CompleteInboundAsync(payload.IntegrationEntryId, cancellationToken);
-        logger.LogInformation("Completed inbound integration entry {IntegrationEntryId} for client {ClientId}.", payload.IntegrationEntryId, payload.ClientId);
+        await processingService.CompleteDispatchAsync(payload.IntegrationEntryId, cancellationToken);
+        logger.LogInformation("Completed integration dispatch entry {IntegrationEntryId} for client {ClientId}.", payload.IntegrationEntryId, payload.ClientId);
     }
 }

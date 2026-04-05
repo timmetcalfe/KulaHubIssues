@@ -1,82 +1,42 @@
 namespace KulaHub.Functions;
 
-public enum InboxRouteAction
-{
-    Ignore,
-    Outbound,
-    Inbound
-}
-
-public sealed class InboxRoutingRule
+public sealed class IntegrationRoutingRule
 {
     public int ClientId { get; set; }
     public List<KulaHub.Data.OriginType> OriginTypes { get; set; } = [];
-    public InboxRouteAction Action { get; set; }
+    public string? SourceSystemKey { get; set; }
+    public List<string> EntityTypes { get; set; } = [];
+    public List<string> EventTypes { get; set; } = [];
+    public KulaHub.Data.IntegrationDisposition Disposition { get; set; }
+    public string QueueKey { get; set; } = string.Empty;
 }
-
-public sealed class QueueRoutingRule
-{
-    public int ClientId { get; set; }
-    public string QueueName { get; set; } = string.Empty;
-}
-
-// public sealed class ConsumerQueueBindingOptions
-// {
-//     // public string DealerInboundQueueName { get; set; } = "clientid4-inbound";
-
-//     // public string PolarisOutboundQueueName { get; set; } = "polaris-outbound";
-
-//     // public string PolarisInboundQueueName { get; set; } = "polaris-inbound";
-// }
 
 public sealed class ProcessingOptions
 {
     public const string SectionName = "ProcessingOptions";
-    public const string DealerInboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:DealerInboundQueueName%";
-    public const string PolarisOutboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:PolarisOutboundQueueName%";
-    public const string PolarisInboundQueueSetting = "%ProcessingOptions:ConsumerQueueBindings:PolarisInboundQueueName%";
+    public const string DealerContactMirrorQueueSetting = "%ProcessingOptions:QueueBindings:DealerContactMirror%";
+    public const string PolarisContactExportQueueSetting = "%ProcessingOptions:QueueBindings:PolarisContactExport%";
+    public const string PolarisImportProcessingQueueSetting = "%ProcessingOptions:QueueBindings:PolarisImportProcessing%";
 
     public int BatchSize { get; set; } = 50;
 
-    //public ConsumerQueueBindingOptions ConsumerQueueBindings { get; set; } = new();
-
-    public List<InboxRoutingRule> InboxRoutingRules { get; set; } =
+    public List<IntegrationRoutingRule> RoutingRules { get; set; } =
     [
         // new()
         // {
         //     ClientId = 4,
-        //     OriginTypes = [KulaHub.Data.OriginType.ExternalClient],
-        //     Action = InboxRouteAction.Inbound
+        //     OriginTypes = [KulaHub.Data.OriginType.InternalApp],
+        //     Disposition = KulaHub.Data.IntegrationDisposition.Inbound,
+        //     QueueKey = "DealerContactMirror"
         // },
         // new()
         // {
         //     ClientId = 3,
-        //     OriginTypes =
-        //     [
-        //         KulaHub.Data.OriginType.InternalApp,
-        //         KulaHub.Data.OriginType.BackOfficeUser,
-        //         KulaHub.Data.OriginType.BatchJob,
-        //         KulaHub.Data.OriginType.System
-        //     ],
-        //     Action = InboxRouteAction.Inbound
+        //     OriginTypes = [KulaHub.Data.OriginType.InternalApp],
+        //     Disposition = KulaHub.Data.IntegrationDisposition.Outbound,
+        //     QueueKey = "PolarisContactExport"
         // }
     ];
 
-    public List<QueueRoutingRule> OutboundQueueRules { get; set; } =
-    [
-        // new()
-        // {
-        //     ClientId = 3,
-        //     QueueName = "clientid3-outbound"
-        // }
-    ];
-
-    public List<QueueRoutingRule> InboundQueueRules { get; set; } =
-    [
-        // new()
-        // {
-        //     ClientId = 4,
-        //     QueueName = "clientid4-inbound"
-        // }
-    ];
+    public Dictionary<string, string> QueueBindings { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }

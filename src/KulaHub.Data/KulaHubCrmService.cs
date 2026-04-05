@@ -185,10 +185,12 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
                 contact.Postcode,
                 contact.CreatedUtc,
                 contact.CreatedBy,
+                SourceSystemKey = NormalizeSourceSystemKey(command.SourceSystemKey),
                 OriginType = originType.ToString()
             },
             originType,
-            receivedUtc: createdUtc);
+            receivedUtc: createdUtc,
+            sourceSystemKey: command.SourceSystemKey);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
@@ -234,10 +236,12 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
                 note.Content,
                 note.CreatedUtc,
                 note.CreatedBy,
+                SourceSystemKey = NormalizeSourceSystemKey(command.SourceSystemKey),
                 OriginType = originType.ToString()
             },
             originType,
-            receivedUtc: createdUtc);
+            receivedUtc: createdUtc,
+            sourceSystemKey: command.SourceSystemKey);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
@@ -289,10 +293,12 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
                 form.DateTime2,
                 form.CreatedUtc,
                 form.CreatedBy,
+                SourceSystemKey = NormalizeSourceSystemKey(command.SourceSystemKey),
                 OriginType = originType.ToString()
             },
             originType,
-            receivedUtc: createdUtc);
+            receivedUtc: createdUtc,
+            sourceSystemKey: command.SourceSystemKey);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
@@ -300,9 +306,10 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
         return new CreateFormResult(form.FormId);
     }
 
-    private void AddInboxEntry(int clientId, string entityType, string eventType, string changeType, object payload, OriginType originType, DateTime receivedUtc)
+    private void AddInboxEntry(int clientId, string entityType, string eventType, string changeType, object payload, OriginType originType, DateTime receivedUtc, string? sourceSystemKey = null)
     {
         var traceContext = GetTraceContext();
+        var normalizedSourceSystemKey = NormalizeSourceSystemKey(sourceSystemKey);
 
         dbContext.IntegrationInbox.Add(new IntegrationInboxEntry
         {
@@ -310,12 +317,20 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
             TraceParent = traceContext.TraceParent,
             ClientId = clientId,
             OriginType = originType,
+            SourceSystemKey = normalizedSourceSystemKey,
             EntityType = entityType,
             EventType = eventType,
             ChangeType = changeType,
             PayloadJson = JsonSerializer.Serialize(payload),
             ReceivedUtc = receivedUtc
         });
+    }
+
+    private static string? NormalizeSourceSystemKey(string? sourceSystemKey)
+    {
+        return string.IsNullOrWhiteSpace(sourceSystemKey)
+            ? null
+            : sourceSystemKey.Trim();
     }
 
     private static (string CorrelationId, string TraceParent) GetTraceContext()

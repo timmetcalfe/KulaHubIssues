@@ -5,6 +5,7 @@ CREATE TABLE [dbo].[IntegrationInbox]
     [TraceParent] NVARCHAR(55) NULL,
     [ClientId] INT NOT NULL,
     [OriginType] NVARCHAR(50) NOT NULL,
+    [SourceSystemKey] NVARCHAR(100) NULL,
     [EntityType] NVARCHAR(100) NOT NULL,
     [EventType] NVARCHAR(100) NOT NULL,
     [ChangeType] NVARCHAR(50) NOT NULL,
@@ -19,6 +20,11 @@ GO
 
 CREATE INDEX [IX_IntegrationInbox_ClientId]
     ON [dbo].[IntegrationInbox] ([ClientId]);
+GO
+
+CREATE INDEX [IX_IntegrationInbox_SourceSystemKey]
+    ON [dbo].[IntegrationInbox] ([SourceSystemKey])
+    WHERE [SourceSystemKey] IS NOT NULL;
 GO
 
 CREATE INDEX [IX_IntegrationInbox_Unprocessed]

@@ -7,4 +7,6 @@ public sealed record QueuedIntegrationMessage(
     string EventType,
     string ChangeType,
     string PayloadJson,
-    string DispatchTarget);
+    string DispatchTarget,
+    string QueueKey = "",
+    string? SourceSystemKey = null);

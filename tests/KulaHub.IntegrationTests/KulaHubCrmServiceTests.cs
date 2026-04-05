@@ -59,7 +59,7 @@ public sealed class KulaHubCrmServiceTests : IAsyncLifetime
         activity.Start();
 
         var result = await crmService.CreateContactAsync(
-            new CreateContactCommand(4, 4001, null, "Ava", "Stone", "ava.stone@dealer.example", "SR2 5CC"),
+            new CreateContactCommand(4, 4001, null, "Ava", "Stone", "ava.stone@dealer.example", "SR2 5CC", "Dealer"),
             OriginType.ExternalClient);
 
         var contact = await dbContext.Contacts.SingleAsync(item => item.ContactId == result.ContactId);
@@ -70,6 +70,7 @@ public sealed class KulaHubCrmServiceTests : IAsyncLifetime
         Assert.Equal("Ava", contact.FirstName);
         Assert.Equal(nameof(OriginType.ExternalClient), contact.CreatedBy);
         Assert.Equal(OriginType.ExternalClient, inboxEntry.OriginType);
+        Assert.Equal("Dealer", inboxEntry.SourceSystemKey);
         Assert.Equal("Contact", inboxEntry.EntityType);
         Assert.Equal("Contact.Created", inboxEntry.EventType);
         Assert.Equal(activity.TraceId.ToString(), inboxEntry.CorrelationId);

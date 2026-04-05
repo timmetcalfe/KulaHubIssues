@@ -7,229 +7,285 @@ GO
 SET XACT_ABORT ON;
 GO
 
-IF COL_LENGTH('dbo.IntegrationOutbound', 'DispatchedUtc') IS NULL
-BEGIN
-    ALTER TABLE dbo.IntegrationOutbound
-    ADD DispatchedUtc DATETIME2(7) NULL;
-END;
-GO
+BEGIN TRY
+    BEGIN TRANSACTION;
 
-IF COL_LENGTH('dbo.IntegrationOutbound', 'CorrelationId') IS NULL
-BEGIN
-    ALTER TABLE dbo.IntegrationOutbound
-    ADD CorrelationId NVARCHAR(32) NULL;
-END;
-GO
+    IF OBJECT_ID('dbo.IntegrationOutbound', 'U') IS NOT NULL
+       AND EXISTS (SELECT 1 FROM dbo.IntegrationOutbound)
+    BEGIN
+        THROW 51000, 'Direct cutover blocked: dbo.IntegrationOutbound still contains rows. Drain or archive legacy outbound rows before running this migration.', 1;
+    END;
 
-IF COL_LENGTH('dbo.IntegrationOutbound', 'TraceParent') IS NULL
-BEGIN
-    ALTER TABLE dbo.IntegrationOutbound
-    ADD TraceParent NVARCHAR(55) NULL;
-END;
-GO
+    IF OBJECT_ID('dbo.IntegrationInbound', 'U') IS NOT NULL
+       AND EXISTS (SELECT 1 FROM dbo.IntegrationInbound)
+    BEGIN
+        THROW 51001, 'Direct cutover blocked: dbo.IntegrationInbound still contains rows. Drain or archive legacy inbound rows before running this migration.', 1;
+    END;
 
-IF COL_LENGTH('dbo.IntegrationOutbound', 'OriginType') IS NULL
-BEGIN
-    ALTER TABLE dbo.IntegrationOutbound
-    ADD OriginType NVARCHAR(50) NULL;
-END;
-GO
+    IF COL_LENGTH('dbo.IntegrationInbox', 'CorrelationId') IS NULL
+    BEGIN
+        ALTER TABLE dbo.IntegrationInbox
+        ADD CorrelationId NVARCHAR(32) NULL;
+    END;
 
-UPDATE dbo.IntegrationOutbound
-SET OriginType = 'ExternalClient'
-WHERE OriginType IS NULL;
-GO
+    IF COL_LENGTH('dbo.IntegrationInbox', 'TraceParent') IS NULL
+    BEGIN
+        ALTER TABLE dbo.IntegrationInbox
+        ADD TraceParent NVARCHAR(55) NULL;
+    END;
 
-IF EXISTS (
-    SELECT 1
-    FROM sys.columns
-    WHERE object_id = OBJECT_ID('dbo.IntegrationOutbound')
-      AND name = 'OriginType'
-      AND is_nullable = 1)
-BEGIN
-    ALTER TABLE dbo.IntegrationOutbound
-    ALTER COLUMN OriginType NVARCHAR(50) NOT NULL;
-END;
-GO
+    IF COL_LENGTH('dbo.IntegrationInbox', 'OriginType') IS NULL
+    BEGIN
+        ALTER TABLE dbo.IntegrationInbox
+        ADD OriginType NVARCHAR(50) NULL;
+    END;
 
-IF COL_LENGTH('dbo.IntegrationOutbound', 'DispatchTarget') IS NULL
-BEGIN
-    ALTER TABLE dbo.IntegrationOutbound
-    ADD DispatchTarget NVARCHAR(200) NULL;
-END;
-GO
+    IF COL_LENGTH('dbo.IntegrationInbox', 'SourceSystemKey') IS NULL
+    BEGIN
+        ALTER TABLE dbo.IntegrationInbox
+        ADD SourceSystemKey NVARCHAR(100) NULL;
+    END;
 
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.indexes
-    WHERE name = 'IX_IntegrationOutbound_Undispatched'
-      AND object_id = OBJECT_ID('dbo.IntegrationOutbound'))
-BEGIN
-    CREATE INDEX IX_IntegrationOutbound_Undispatched
-        ON dbo.IntegrationOutbound (DispatchedUtc, ReceivedUtc)
-        WHERE DispatchedUtc IS NULL;
-END;
-GO
+    UPDATE dbo.IntegrationInbox
+    SET OriginType = 'ExternalClient'
+    WHERE OriginType IS NULL;
 
-IF COL_LENGTH('dbo.IntegrationInbound', 'DispatchedUtc') IS NULL
-BEGIN
-    ALTER TABLE dbo.IntegrationInbound
-    ADD DispatchedUtc DATETIME2(7) NULL;
-END;
-GO
+    IF EXISTS (
+        SELECT 1
+        FROM sys.columns
+        WHERE object_id = OBJECT_ID('dbo.IntegrationInbox')
+          AND name = 'OriginType'
+          AND is_nullable = 1)
+    BEGIN
+        ALTER TABLE dbo.IntegrationInbox
+        ALTER COLUMN OriginType NVARCHAR(50) NOT NULL;
+    END;
 
-IF COL_LENGTH('dbo.IntegrationInbound', 'CorrelationId') IS NULL
-BEGIN
-    ALTER TABLE dbo.IntegrationInbound
-    ADD CorrelationId NVARCHAR(32) NULL;
-END;
-GO
+    IF OBJECT_ID('dbo.IntegrationDispatch', 'U') IS NULL
+    BEGIN
+        CREATE TABLE dbo.IntegrationDispatch
+        (
+            Id BIGINT IDENTITY(1,1) NOT NULL,
+            IntegrationInboxId BIGINT NOT NULL,
+            CorrelationId NVARCHAR(32) NULL,
+            TraceParent NVARCHAR(55) NULL,
+            ClientId INT NOT NULL,
+            Disposition NVARCHAR(50) NOT NULL,
+            OriginType NVARCHAR(50) NOT NULL,
+            SourceSystemKey NVARCHAR(100) NULL,
+            QueueKey NVARCHAR(100) NOT NULL,
+            EntityType NVARCHAR(100) NOT NULL,
+            EventType NVARCHAR(100) NOT NULL,
+            ChangeType NVARCHAR(50) NOT NULL,
+            ExternalEntityId NVARCHAR(100) NULL,
+            PayloadJson NVARCHAR(MAX) NOT NULL,
+            ReceivedUtc DATETIME2(7) NOT NULL CONSTRAINT DF_IntegrationDispatch_ReceivedUtc DEFAULT SYSUTCDATETIME(),
+            DispatchedUtc DATETIME2(7) NULL,
+            DispatchTarget NVARCHAR(200) NULL,
+            ProcessedUtc DATETIME2(7) NULL,
+            CONSTRAINT PK_IntegrationDispatch PRIMARY KEY CLUSTERED (Id ASC)
+        );
+    END;
 
-IF COL_LENGTH('dbo.IntegrationInbound', 'TraceParent') IS NULL
-BEGIN
-    ALTER TABLE dbo.IntegrationInbound
-    ADD TraceParent NVARCHAR(55) NULL;
-END;
-GO
+    IF COL_LENGTH('dbo.IntegrationDispatch', 'IntegrationInboxId') IS NULL
+    BEGIN
+        THROW 51002, 'dbo.IntegrationDispatch exists but does not match the expected schema. Apply the schema manually or recreate the table before rerunning this migration.', 1;
+    END;
 
-IF COL_LENGTH('dbo.IntegrationInbound', 'OriginType') IS NULL
-BEGIN
-    ALTER TABLE dbo.IntegrationInbound
-    ADD OriginType NVARCHAR(50) NULL;
-END;
-GO
+    IF COL_LENGTH('dbo.IntegrationDispatch', 'CorrelationId') IS NULL
+    BEGIN
+        ALTER TABLE dbo.IntegrationDispatch ADD CorrelationId NVARCHAR(32) NULL;
+    END;
 
-UPDATE dbo.IntegrationInbound
-SET OriginType = 'ExternalClient'
-WHERE OriginType IS NULL;
-GO
+    IF COL_LENGTH('dbo.IntegrationDispatch', 'TraceParent') IS NULL
+    BEGIN
+        ALTER TABLE dbo.IntegrationDispatch ADD TraceParent NVARCHAR(55) NULL;
+    END;
 
-IF EXISTS (
-    SELECT 1
-    FROM sys.columns
-    WHERE object_id = OBJECT_ID('dbo.IntegrationInbound')
-      AND name = 'OriginType'
-      AND is_nullable = 1)
-BEGIN
-    ALTER TABLE dbo.IntegrationInbound
-    ALTER COLUMN OriginType NVARCHAR(50) NOT NULL;
-END;
-GO
+    IF COL_LENGTH('dbo.IntegrationDispatch', 'Disposition') IS NULL
+    BEGIN
+        ALTER TABLE dbo.IntegrationDispatch ADD Disposition NVARCHAR(50) NULL;
+    END;
 
-IF COL_LENGTH('dbo.IntegrationInbound', 'DispatchTarget') IS NULL
-BEGIN
-    ALTER TABLE dbo.IntegrationInbound
-    ADD DispatchTarget NVARCHAR(200) NULL;
-END;
-GO
+    IF COL_LENGTH('dbo.IntegrationDispatch', 'OriginType') IS NULL
+    BEGIN
+        ALTER TABLE dbo.IntegrationDispatch ADD OriginType NVARCHAR(50) NULL;
+    END;
 
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.indexes
-    WHERE name = 'IX_IntegrationInbound_Undispatched'
-      AND object_id = OBJECT_ID('dbo.IntegrationInbound'))
-BEGIN
-    CREATE INDEX IX_IntegrationInbound_Undispatched
-        ON dbo.IntegrationInbound (DispatchedUtc, ReceivedUtc)
-        WHERE DispatchedUtc IS NULL;
-END;
-GO
+    IF COL_LENGTH('dbo.IntegrationDispatch', 'SourceSystemKey') IS NULL
+    BEGIN
+        ALTER TABLE dbo.IntegrationDispatch ADD SourceSystemKey NVARCHAR(100) NULL;
+    END;
 
-IF OBJECT_ID('dbo.Notes', 'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.Notes
-    (
-        NoteId INT IDENTITY(1,1) NOT NULL,
-        ClientId INT NOT NULL,
-        ContactId INT NOT NULL,
-        Content NVARCHAR(MAX) NOT NULL,
-        CreatedUtc DATETIME2(7) NOT NULL CONSTRAINT DF_Notes_CreatedUtc DEFAULT SYSUTCDATETIME(),
-        CreatedBy NVARCHAR(100) NOT NULL,
-        ModifiedUtc DATETIME2(7) NULL,
-        ModifiedBy NVARCHAR(100) NULL,
-        DeletedUtc DATETIME2(7) NULL,
-        CONSTRAINT PK_Notes PRIMARY KEY CLUSTERED (NoteId ASC),
-        CONSTRAINT FK_Notes_Clients FOREIGN KEY (ClientId) REFERENCES dbo.Clients (ClientId),
-        CONSTRAINT FK_Notes_Contacts FOREIGN KEY (ContactId) REFERENCES dbo.Contacts (ContactId)
-    );
-END;
-GO
+    IF COL_LENGTH('dbo.IntegrationDispatch', 'QueueKey') IS NULL
+    BEGIN
+        ALTER TABLE dbo.IntegrationDispatch ADD QueueKey NVARCHAR(100) NULL;
+    END;
 
-IF COL_LENGTH('dbo.IntegrationInbox', 'OriginType') IS NULL
-BEGIN
-    ALTER TABLE dbo.IntegrationInbox
-    ADD OriginType NVARCHAR(50) NULL;
-END;
-GO
+    IF COL_LENGTH('dbo.IntegrationDispatch', 'DispatchedUtc') IS NULL
+    BEGIN
+        ALTER TABLE dbo.IntegrationDispatch ADD DispatchedUtc DATETIME2(7) NULL;
+    END;
 
-IF COL_LENGTH('dbo.IntegrationInbox', 'CorrelationId') IS NULL
-BEGIN
-    ALTER TABLE dbo.IntegrationInbox
-    ADD CorrelationId NVARCHAR(32) NULL;
-END;
-GO
+    IF COL_LENGTH('dbo.IntegrationDispatch', 'DispatchTarget') IS NULL
+    BEGIN
+        ALTER TABLE dbo.IntegrationDispatch ADD DispatchTarget NVARCHAR(200) NULL;
+    END;
 
-IF COL_LENGTH('dbo.IntegrationInbox', 'TraceParent') IS NULL
-BEGIN
-    ALTER TABLE dbo.IntegrationInbox
-    ADD TraceParent NVARCHAR(55) NULL;
-END;
-GO
+    IF COL_LENGTH('dbo.IntegrationDispatch', 'ProcessedUtc') IS NULL
+    BEGIN
+        ALTER TABLE dbo.IntegrationDispatch ADD ProcessedUtc DATETIME2(7) NULL;
+    END;
 
-UPDATE dbo.IntegrationInbox
-SET OriginType = 'ExternalClient'
-WHERE OriginType IS NULL;
-GO
+    IF COL_LENGTH('dbo.IntegrationDispatch', 'ReceivedUtc') IS NULL
+    BEGIN
+        ALTER TABLE dbo.IntegrationDispatch
+        ADD ReceivedUtc DATETIME2(7) NOT NULL CONSTRAINT DF_IntegrationDispatch_ReceivedUtc DEFAULT SYSUTCDATETIME();
+    END;
 
-IF EXISTS (
-    SELECT 1
-    FROM sys.columns
-    WHERE object_id = OBJECT_ID('dbo.IntegrationInbox')
-      AND name = 'OriginType'
-      AND is_nullable = 1)
-BEGIN
-    ALTER TABLE dbo.IntegrationInbox
-    ALTER COLUMN OriginType NVARCHAR(50) NOT NULL;
-END;
-GO
+    EXEC sys.sp_executesql N'
+        UPDATE dbo.IntegrationDispatch
+        SET OriginType = ISNULL(OriginType, ''ExternalClient''),
+            Disposition = ISNULL(Disposition, ''Outbound''),
+            QueueKey = ISNULL(QueueKey, ''Unknown'')
+        WHERE OriginType IS NULL
+           OR Disposition IS NULL
+           OR QueueKey IS NULL;';
 
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.indexes
-    WHERE name = 'IX_Notes_ClientId'
-      AND object_id = OBJECT_ID('dbo.Notes'))
-BEGIN
-    CREATE INDEX IX_Notes_ClientId
-        ON dbo.Notes (ClientId);
-END;
-GO
+    IF EXISTS (
+        SELECT 1
+        FROM sys.columns
+        WHERE object_id = OBJECT_ID('dbo.IntegrationDispatch')
+          AND name = 'Disposition'
+          AND is_nullable = 1)
+    BEGIN
+        EXEC sys.sp_executesql N'
+            ALTER TABLE dbo.IntegrationDispatch
+            ALTER COLUMN Disposition NVARCHAR(50) NOT NULL;';
+    END;
 
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.indexes
-    WHERE name = 'IX_Notes_ContactId'
-      AND object_id = OBJECT_ID('dbo.Notes'))
-BEGIN
-    CREATE INDEX IX_Notes_ContactId
-        ON dbo.Notes (ContactId);
-END;
-GO
+    IF EXISTS (
+        SELECT 1
+        FROM sys.columns
+        WHERE object_id = OBJECT_ID('dbo.IntegrationDispatch')
+          AND name = 'OriginType'
+          AND is_nullable = 1)
+    BEGIN
+        EXEC sys.sp_executesql N'
+            ALTER TABLE dbo.IntegrationDispatch
+            ALTER COLUMN OriginType NVARCHAR(50) NOT NULL;';
+    END;
 
-IF COL_LENGTH('dbo.Contacts', 'SourceContactId') IS NULL
-BEGIN
-    ALTER TABLE dbo.Contacts
-    ADD SourceContactId INT NULL;
-END;
-GO
+    IF EXISTS (
+        SELECT 1
+        FROM sys.columns
+        WHERE object_id = OBJECT_ID('dbo.IntegrationDispatch')
+          AND name = 'QueueKey'
+          AND is_nullable = 1)
+    BEGIN
+        EXEC sys.sp_executesql N'
+            ALTER TABLE dbo.IntegrationDispatch
+            ALTER COLUMN QueueKey NVARCHAR(100) NOT NULL;';
+    END;
 
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.indexes
-    WHERE name = 'IX_Contacts_SourceContactId'
-      AND object_id = OBJECT_ID('dbo.Contacts'))
-BEGIN
-    CREATE INDEX IX_Contacts_SourceContactId
-        ON dbo.Contacts (ClientId, SourceContactId)
-        WHERE SourceContactId IS NOT NULL;
-END;
+    IF NOT EXISTS (
+        SELECT 1
+        FROM sys.indexes
+        WHERE name = 'IX_IntegrationInbox_SourceSystemKey'
+          AND object_id = OBJECT_ID('dbo.IntegrationInbox'))
+    BEGIN
+        EXEC sys.sp_executesql N'
+            CREATE INDEX IX_IntegrationInbox_SourceSystemKey
+                ON dbo.IntegrationInbox (SourceSystemKey)
+                WHERE SourceSystemKey IS NOT NULL;';
+    END;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM sys.indexes
+        WHERE name = 'IX_IntegrationDispatch_ClientId'
+          AND object_id = OBJECT_ID('dbo.IntegrationDispatch'))
+    BEGIN
+        CREATE INDEX IX_IntegrationDispatch_ClientId
+            ON dbo.IntegrationDispatch (ClientId);
+    END;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM sys.indexes
+        WHERE name = 'IX_IntegrationDispatch_InboxId'
+          AND object_id = OBJECT_ID('dbo.IntegrationDispatch'))
+    BEGIN
+        EXEC sys.sp_executesql N'
+            CREATE INDEX IX_IntegrationDispatch_InboxId
+                ON dbo.IntegrationDispatch (IntegrationInboxId);';
+    END;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM sys.indexes
+        WHERE name = 'IX_IntegrationDispatch_QueueKey'
+          AND object_id = OBJECT_ID('dbo.IntegrationDispatch'))
+    BEGIN
+        EXEC sys.sp_executesql N'
+            CREATE INDEX IX_IntegrationDispatch_QueueKey
+                ON dbo.IntegrationDispatch (QueueKey);';
+    END;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM sys.indexes
+        WHERE name = 'IX_IntegrationDispatch_SourceSystemKey'
+          AND object_id = OBJECT_ID('dbo.IntegrationDispatch'))
+    BEGIN
+        EXEC sys.sp_executesql N'
+            CREATE INDEX IX_IntegrationDispatch_SourceSystemKey
+                ON dbo.IntegrationDispatch (SourceSystemKey)
+                WHERE SourceSystemKey IS NOT NULL;';
+    END;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM sys.indexes
+        WHERE name = 'IX_IntegrationDispatch_Unprocessed'
+          AND object_id = OBJECT_ID('dbo.IntegrationDispatch'))
+    BEGIN
+        EXEC sys.sp_executesql N'
+            CREATE INDEX IX_IntegrationDispatch_Unprocessed
+                ON dbo.IntegrationDispatch (ProcessedUtc, ReceivedUtc)
+                WHERE ProcessedUtc IS NULL;';
+    END;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM sys.indexes
+        WHERE name = 'IX_IntegrationDispatch_Undispatched'
+          AND object_id = OBJECT_ID('dbo.IntegrationDispatch'))
+    BEGIN
+        EXEC sys.sp_executesql N'
+            CREATE INDEX IX_IntegrationDispatch_Undispatched
+                ON dbo.IntegrationDispatch (DispatchedUtc, ReceivedUtc)
+                WHERE DispatchedUtc IS NULL;';
+    END;
+
+    IF OBJECT_ID('dbo.IntegrationOutbound', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.IntegrationOutbound;
+    END;
+
+    IF OBJECT_ID('dbo.IntegrationInbound', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.IntegrationInbound;
+    END;
+
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0
+    BEGIN
+        ROLLBACK TRANSACTION;
+    END;
+
+    THROW;
+END CATCH;
 GO

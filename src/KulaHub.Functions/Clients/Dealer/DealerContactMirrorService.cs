@@ -14,6 +14,7 @@ public sealed class DealerContactMirrorService(
 {
     private const int DealerClientId = 4;
     private const int PolarisClientId = 3;
+    private const string DealerSourceSystemKey = "Dealer";
 
     public async Task MirrorToPolarisIfRequiredAsync(QueuedIntegrationMessage payload, CancellationToken cancellationToken)
     {
@@ -44,6 +45,7 @@ public sealed class DealerContactMirrorService(
                 LastName: contactPayload.LastName,
                 Email: contactPayload.Email,
                 Postcode: contactPayload.Postcode,
+                SourceSystemKey: DealerSourceSystemKey,
                 OriginType: OriginType.InternalApp),
             cancellationToken);
 
@@ -81,6 +83,7 @@ public sealed class DealerContactMirrorService(
         string? LastName,
         string? Email,
         string? Postcode,
+        string? SourceSystemKey,
         OriginType OriginType);
 
     private sealed record MirroredContactPayload(

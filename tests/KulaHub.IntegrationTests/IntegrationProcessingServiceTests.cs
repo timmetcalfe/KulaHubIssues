@@ -32,37 +32,28 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
             Options.Create(new ProcessingOptions
             {
                 BatchSize = 50,
-                InboxRoutingRules =
+                RoutingRules =
                 [
                     new()
                     {
                         ClientId = 4,
                         OriginTypes = [OriginType.ExternalClient],
-                        Action = InboxRouteAction.Outbound
+                        Disposition = IntegrationDisposition.Outbound,
+                        QueueKey = "Client4Outbound"
                     },
                     new()
                     {
                         ClientId = 3,
                         OriginTypes = [OriginType.InternalApp, OriginType.BatchJob],
-                        Action = InboxRouteAction.Inbound
+                        Disposition = IntegrationDisposition.Inbound,
+                        QueueKey = "Client3Inbound"
                     }
                 ],
-                OutboundQueueRules =
-                [
-                    new()
-                    {
-                        ClientId = 4,
-                        QueueName = "clientid4-outbound"
-                    }
-                ],
-                InboundQueueRules =
-                [
-                    new()
-                    {
-                        ClientId = 3,
-                        QueueName = "clientid3-inbound"
-                    }
-                ]
+                QueueBindings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Client4Outbound"] = "clientid4-outbound",
+                    ["Client3Inbound"] = "clientid3-inbound"
+                }
             }),
             NullLogger<IntegrationProcessingService>.Instance);
     }
@@ -85,17 +76,20 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
         var processedCount = await processingService.ProcessInboxAsync(CancellationToken.None);
 
         var inboxEntries = await dbContext.IntegrationInbox.OrderBy(item => item.Id).ToListAsync();
-        var outboundEntry = await dbContext.IntegrationOutbound.SingleAsync();
-        var inboundEntry = await dbContext.IntegrationInbound.SingleAsync();
+        var dispatchEntries = await dbContext.IntegrationDispatch.OrderBy(item => item.Id).ToListAsync();
+        var outboundEntry = dispatchEntries.Single(item => item.Disposition == IntegrationDisposition.Outbound);
+        var inboundEntry = dispatchEntries.Single(item => item.Disposition == IntegrationDisposition.Inbound);
 
         Assert.Equal(3, processedCount);
         Assert.All(inboxEntries, item => Assert.NotNull(item.ProcessedUtc));
         Assert.Equal(4, outboundEntry.ClientId);
+        Assert.Equal("Client4Outbound", outboundEntry.QueueKey);
         Assert.Equal(OriginType.ExternalClient, outboundEntry.OriginType);
         Assert.Equal("Contact.Created", outboundEntry.EventType);
         Assert.Equal("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", outboundEntry.CorrelationId);
         Assert.Equal("00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-1111111111111111-01", outboundEntry.TraceParent);
         Assert.Equal(3, inboundEntry.ClientId);
+        Assert.Equal("Client3Inbound", inboundEntry.QueueKey);
         Assert.Equal(OriginType.InternalApp, inboundEntry.OriginType);
         Assert.Equal("Form.Created", inboundEntry.EventType);
         Assert.Equal("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", inboundEntry.CorrelationId);
@@ -103,14 +97,17 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task DispatchOutboundAsync_SendsQueueMessageAndMarksEntryDispatched()
+    public async Task DispatchAsync_SendsQueueMessageAndMarksEntryDispatched()
     {
-        var outboundEntry = new IntegrationOutboundEntry
+        var dispatchEntry = new IntegrationDispatchEntry
         {
+            IntegrationInboxId = 100,
             CorrelationId = "11111111111111111111111111111111",
             TraceParent = "00-11111111111111111111111111111111-3333333333333333-01",
             ClientId = 4,
+            Disposition = IntegrationDisposition.Outbound,
             OriginType = OriginType.ExternalClient,
+            QueueKey = "Client4Outbound",
             EntityType = "Contact",
             EventType = "Contact.Created",
             ChangeType = "Created",
@@ -119,11 +116,11 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
             ReceivedUtc = DateTime.UtcNow
         };
 
-        dbContext.IntegrationOutbound.Add(outboundEntry);
+        dbContext.IntegrationDispatch.Add(dispatchEntry);
         await dbContext.SaveChangesAsync();
 
-        var dispatchedCount = await processingService.DispatchOutboundAsync(CancellationToken.None);
-        var reloadedEntry = await dbContext.IntegrationOutbound.SingleAsync();
+        var dispatchedCount = await processingService.DispatchAsync(CancellationToken.None);
+        var reloadedEntry = await dbContext.IntegrationDispatch.SingleAsync();
 
         Assert.Equal(1, dispatchedCount);
         Assert.Single(queueMessageSender.Messages);
@@ -137,46 +134,15 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task DispatchInboundAsync_SendsQueueMessageAndMarksEntryDispatched()
+    public async Task DispatchAsync_IgnoresEntriesWithoutMatchingBinding()
     {
-        var inboundEntry = new IntegrationInboundEntry
+        dbContext.IntegrationDispatch.Add(new IntegrationDispatchEntry
         {
-            CorrelationId = "22222222222222222222222222222222",
-            TraceParent = "00-22222222222222222222222222222222-4444444444444444-01",
-            ClientId = 3,
-            OriginType = OriginType.InternalApp,
-            EntityType = "Form",
-            EventType = "Form.Created",
-            ChangeType = "Created",
-            ExternalEntityId = "456",
-            PayloadJson = "{\"formId\":456}",
-            ReceivedUtc = DateTime.UtcNow
-        };
-
-        dbContext.IntegrationInbound.Add(inboundEntry);
-        await dbContext.SaveChangesAsync();
-
-        var dispatchedCount = await processingService.DispatchInboundAsync(CancellationToken.None);
-        var reloadedEntry = await dbContext.IntegrationInbound.SingleAsync();
-
-        Assert.Equal(1, dispatchedCount);
-        Assert.Single(queueMessageSender.Messages);
-        Assert.Equal("clientid3-inbound", queueMessageSender.Messages[0].QueueName);
-        Assert.Equal(reloadedEntry.Id, queueMessageSender.Messages[0].Message.IntegrationEntryId);
-        Assert.Equal("00-22222222222222222222222222222222-4444444444444444-01", queueMessageSender.Messages[0].TraceParent);
-        Assert.Equal("22222222222222222222222222222222", queueMessageSender.Messages[0].CorrelationId);
-        Assert.Equal("clientid3-inbound", reloadedEntry.DispatchTarget);
-        Assert.NotNull(reloadedEntry.DispatchedUtc);
-        Assert.Null(reloadedEntry.ProcessedUtc);
-    }
-
-    [Fact]
-    public async Task DispatchOutboundAsync_IgnoresEntriesWithoutMatchingRule()
-    {
-        dbContext.IntegrationOutbound.Add(new IntegrationOutboundEntry
-        {
+            IntegrationInboxId = 200,
             ClientId = 77,
+            Disposition = IntegrationDisposition.Outbound,
             OriginType = OriginType.ExternalClient,
+            QueueKey = "UnknownQueue",
             EntityType = "Contact",
             EventType = "Contact.Created",
             ChangeType = "Created",
@@ -185,8 +151,8 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
         });
         await dbContext.SaveChangesAsync();
 
-        var dispatchedCount = await processingService.DispatchOutboundAsync(CancellationToken.None);
-        var reloadedEntry = await dbContext.IntegrationOutbound.SingleAsync();
+        var dispatchedCount = await processingService.DispatchAsync(CancellationToken.None);
+        var reloadedEntry = await dbContext.IntegrationDispatch.SingleAsync();
 
         Assert.Equal(1, dispatchedCount);
         Assert.Empty(queueMessageSender.Messages);
@@ -204,29 +170,28 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
             Options.Create(new ProcessingOptions
             {
                 BatchSize = 50,
-                InboxRoutingRules =
+                RoutingRules =
                 [
                     new()
                     {
                         ClientId = 4,
                         OriginTypes = [OriginType.ExternalClient],
-                        Action = InboxRouteAction.Inbound
+                        Disposition = IntegrationDisposition.Inbound,
+                        QueueKey = "Client4Inbound"
                     },
                     new()
                     {
                         ClientId = 4,
                         OriginTypes = [OriginType.ExternalClient],
-                        Action = InboxRouteAction.Outbound
+                        Disposition = IntegrationDisposition.Outbound,
+                        QueueKey = "Client4Outbound"
                     }
                 ],
-                InboundQueueRules =
-                [
-                    new()
-                    {
-                        ClientId = 4,
-                        QueueName = "clientid4-inbound"
-                    }
-                ]
+                QueueBindings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Client4Inbound"] = "clientid4-inbound",
+                    ["Client4Outbound"] = "clientid4-outbound"
+                }
             }),
             NullLogger<IntegrationProcessingService>.Instance);
 
@@ -235,10 +200,10 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
 
         await orderedService.ProcessInboxAsync(CancellationToken.None);
 
-        Assert.Empty(await dbContext.IntegrationOutbound.ToListAsync());
-        var inboundEntries = await dbContext.IntegrationInbound.ToListAsync();
-        Assert.Single(inboundEntries);
-        Assert.Equal(OriginType.ExternalClient, inboundEntries[0].OriginType);
+        var dispatchEntries = await dbContext.IntegrationDispatch.ToListAsync();
+        Assert.Single(dispatchEntries);
+        Assert.Equal(IntegrationDisposition.Inbound, dispatchEntries[0].Disposition);
+        Assert.Equal(OriginType.ExternalClient, dispatchEntries[0].OriginType);
     }
 
     [Fact]
@@ -250,20 +215,22 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
         var processedCount = await processingService.ProcessInboxAsync(CancellationToken.None);
 
         Assert.Equal(1, processedCount);
-        Assert.Empty(await dbContext.IntegrationOutbound.ToListAsync());
-        Assert.Empty(await dbContext.IntegrationInbound.ToListAsync());
+        Assert.Empty(await dbContext.IntegrationDispatch.ToListAsync());
 
         var inboxEntry = await dbContext.IntegrationInbox.SingleAsync();
         Assert.NotNull(inboxEntry.ProcessedUtc);
     }
 
     [Fact]
-    public async Task CompleteMethods_MarkEntriesProcessed()
+    public async Task CompleteDispatchAsync_MarksEntriesProcessed()
     {
-        var outboundEntry = new IntegrationOutboundEntry
+        var outboundEntry = new IntegrationDispatchEntry
         {
+            IntegrationInboxId = 300,
             ClientId = 4,
+            Disposition = IntegrationDisposition.Outbound,
             OriginType = OriginType.ExternalClient,
+            QueueKey = "Client4Outbound",
             EntityType = "Contact",
             EventType = "Contact.Created",
             ChangeType = "Created",
@@ -273,10 +240,13 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
             DispatchTarget = "clientid4-outbound"
         };
 
-        var inboundEntry = new IntegrationInboundEntry
+        var inboundEntry = new IntegrationDispatchEntry
         {
+            IntegrationInboxId = 301,
             ClientId = 3,
+            Disposition = IntegrationDisposition.Inbound,
             OriginType = OriginType.InternalApp,
+            QueueKey = "Client3Inbound",
             EntityType = "Form",
             EventType = "Form.Created",
             ChangeType = "Created",
@@ -286,15 +256,15 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
             DispatchTarget = "clientid3-inbound"
         };
 
-        dbContext.IntegrationOutbound.Add(outboundEntry);
-        dbContext.IntegrationInbound.Add(inboundEntry);
+        dbContext.IntegrationDispatch.AddRange(outboundEntry, inboundEntry);
         await dbContext.SaveChangesAsync();
 
-        await processingService.CompleteOutboundAsync(outboundEntry.Id, CancellationToken.None);
-        await processingService.CompleteInboundAsync(inboundEntry.Id, CancellationToken.None);
+        await processingService.CompleteDispatchAsync(outboundEntry.Id, CancellationToken.None);
+        await processingService.CompleteDispatchAsync(inboundEntry.Id, CancellationToken.None);
 
-        var reloadedOutbound = await dbContext.IntegrationOutbound.SingleAsync();
-        var reloadedInbound = await dbContext.IntegrationInbound.SingleAsync();
+        var reloadedEntries = await dbContext.IntegrationDispatch.OrderBy(item => item.Id).ToListAsync();
+        var reloadedOutbound = reloadedEntries.Single(item => item.Disposition == IntegrationDisposition.Outbound);
+        var reloadedInbound = reloadedEntries.Single(item => item.Disposition == IntegrationDisposition.Inbound);
 
         Assert.NotNull(reloadedOutbound.ProcessedUtc);
         Assert.NotNull(reloadedInbound.ProcessedUtc);
@@ -308,6 +278,7 @@ public sealed class IntegrationProcessingServiceTests : IAsyncLifetime
             TraceParent = traceParent,
             ClientId = clientId,
             OriginType = originType,
+            SourceSystemKey = null,
             EntityType = eventType.StartsWith("Form", StringComparison.Ordinal) ? "Form" : "Contact",
             EventType = eventType,
             ChangeType = "Created",

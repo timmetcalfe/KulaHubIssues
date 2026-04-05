@@ -2,7 +2,7 @@
 
 ## Summary
 
-Build the solution in phases around a shared EF Core data layer, three host applications (Web API, Razor Pages web app, one Azure Functions app), and Azure deployment assets using AZD plus Bicep. The first version targets .NET 10, includes Notes, keeps authentication out of scope, uses a tenant-switching Razor UI that can create contacts and add forms and notes, and implements a reliable event pipeline that separates dispatch state from final completion state for IntegrationOutbound and IntegrationInbound.
+Build the solution in phases around a shared EF Core data layer, three host applications (Web API, Razor Pages web app, one Azure Functions app), and Azure deployment assets using AZD plus Bicep. The first version targets .NET 10, includes Notes, keeps authentication out of scope, uses a tenant-switching Razor UI that can create contacts and add forms and notes, and implements a reliable event pipeline that separates dispatch state from final completion state for IntegrationDispatch.
 
 ## Decisions
 
@@ -13,7 +13,7 @@ Build the solution in phases around a shared EF Core data layer, three host appl
 - Use one Azure Functions project with multiple triggers rather than several separate Function App projects.
 - Keep the Web API minimal in the first version instead of full CRUD for every entity.
 - Allow contact creation in the Razor Pages UI.
-- Add separate dispatch and completion state for IntegrationOutbound and IntegrationInbound.
+- Add separate dispatch and completion state for IntegrationDispatch.
 - Use configuration-driven sample routing rules.
 - Keep the existing tenant records as Polaris Advisory (ClientId 3) and Dealer (ClientId 4).
 - Keep queue names ID-based, for example `clientid4-outbound`.
@@ -22,7 +22,7 @@ Build the solution in phases around a shared EF Core data layer, three host appl
 ## Phases
 
 1. Stabilize the specification and database contract.
-   Add a Notes table, document Notes in the data model, reconcile Forms schema drift, and extend IntegrationOutbound and IntegrationInbound with separate dispatch and completion state.
+   Add a Notes table, document Notes in the data model, reconcile Forms schema drift, and extend IntegrationDispatch with separate dispatch and completion state.
 2. Define the solution topology.
    Create a .NET 10 solution with shared data/application code, a Web API, a Razor Pages app, one Azure Functions app, and tests.
 3. Implement the shared data/application layer.
@@ -32,7 +32,7 @@ Build the solution in phases around a shared EF Core data layer, three host appl
 5. Implement the Razor Pages app.
    Support tenant switching, contact list/detail, contact creation, note creation, form creation, and viewing related forms and notes.
 6. Implement background processing.
-   Add timer-triggered processing for IntegrationInbox, IntegrationOutbound, and IntegrationInbound plus Service Bus-triggered handlers for sample client-specific consumers.
+   Add timer-triggered processing for IntegrationInbox and IntegrationDispatch plus Service Bus-triggered handlers for sample client-specific consumers.
 7. Implement sample routing behavior.
    Use config-driven rules seeded around Dealer (ClientId 4) inbound and Polaris Advisory (ClientId 3) outbound, with direct queue routing for outbound processing.
 8. Prepare Azure deployment assets.

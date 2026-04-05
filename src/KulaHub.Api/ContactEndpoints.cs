@@ -46,7 +46,7 @@ public static class ContactEndpoints
             {
                 var originType = body.OriginType ?? OriginType.ExternalClient;
                 var result = await crmService.CreateContactAsync(
-                    new CreateContactCommand(clientId, body.SourceContactId, body.OrganisationId, body.FirstName, body.LastName, body.Email, body.Postcode),
+                    new CreateContactCommand(clientId, body.SourceContactId, body.OrganisationId, body.FirstName, body.LastName, body.Email, body.Postcode, body.SourceSystemKey),
                     originType,
                     cancellationToken);
 
@@ -68,7 +68,7 @@ public static class ContactEndpoints
             {
                 var originType = body.OriginType ?? OriginType.ExternalClient;
                 var result = await crmService.AddNoteAsync(
-                    new AddNoteCommand(clientId, contactId, body.Content),
+                    new AddNoteCommand(clientId, contactId, body.Content, body.SourceSystemKey),
                     originType,
                     cancellationToken);
 
@@ -90,7 +90,7 @@ public static class ContactEndpoints
             {
                 var originType = body.OriginType ?? OriginType.ExternalClient;
                 var result = await crmService.CreateContactFormAsync(
-                    new CreateContactFormCommand(clientId, contactId, body.FormTypeId, body.Text1, body.Text2, body.Text3, body.DateTime1, body.DateTime2),
+                    new CreateContactFormCommand(clientId, contactId, body.FormTypeId, body.Text1, body.Text2, body.Text3, body.DateTime1, body.DateTime2, body.SourceSystemKey),
                     originType,
                     cancellationToken);
 
@@ -116,10 +116,11 @@ public static class ContactEndpoints
         string? LastName,
         [property: EmailAddress] string? Email,
         string? Postcode,
+        string? SourceSystemKey = null,
         OriginType? OriginType = null);
 
 
-    public sealed record CreateNoteBody([property: Required] string Content, OriginType? OriginType = null);
+    public sealed record CreateNoteBody([property: Required] string Content, string? SourceSystemKey = null, OriginType? OriginType = null);
 
     public sealed record CreateFormBody(
         [property: Range(1, int.MaxValue)] int FormTypeId,
@@ -128,5 +129,6 @@ public static class ContactEndpoints
         string? Text3,
         DateTime? DateTime1,
         DateTime? DateTime2,
+        string? SourceSystemKey = null,
         OriginType? OriginType = null);
 }

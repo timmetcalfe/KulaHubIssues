@@ -10,13 +10,13 @@ public sealed class DealerInternalConsumerFunction(
 {
     [Function("DealerInternalConsumer")]
     public async Task RunAsync(
-        [ServiceBusTrigger(ProcessingOptions.DealerInboundQueueSetting, Connection = "ServiceBusConnection")]
+        [ServiceBusTrigger(ProcessingOptions.DealerContactMirrorQueueSetting, Connection = "ServiceBusConnection")]
         string message,
         CancellationToken cancellationToken)
     {
         var payload = IntegrationFunctionMessageSerializer.Deserialize(message);
         await contactMirrorService.MirrorToPolarisIfRequiredAsync(payload, cancellationToken);
-        await processingService.CompleteInboundAsync(payload.IntegrationEntryId, cancellationToken);
-        logger.LogInformation("Completed inbound integration entry {IntegrationEntryId} for client {ClientId}.", payload.IntegrationEntryId, payload.ClientId);
+        await processingService.CompleteDispatchAsync(payload.IntegrationEntryId, cancellationToken);
+        logger.LogInformation("Completed integration dispatch entry {IntegrationEntryId} for client {ClientId}.", payload.IntegrationEntryId, payload.ClientId);
     }
 }
