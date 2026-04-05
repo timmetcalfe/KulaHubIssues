@@ -8,7 +8,8 @@ Accept: application/json
 ###
 
 ### Create contact for Dealer (ClientId 4)
-### Use OriginType ExternalClient so the Functions app routes it to the outbound path.
+### `originType` describes whether the change came from outside or inside KulaHub.
+### `sourceSystemKey` identifies the external partner when known, for example `Dealer` or `Polaris`.
 POST {{KulaHub.Api_HostAddress}}/api/clients/{{clientId}}/contacts
 Content-Type: application/json
 Accept: application/json
@@ -16,16 +17,33 @@ Accept: application/json
 {
 	"organisationId": null,
 	"firstName": "Taylor",
-	"lastName": "Internal11",
-	"email": "taylor.internal11@example.com",
+	"lastName": "Partner11",
+	"email": "taylor.partner11@example.com",
 	"postcode": "SW1A 1AA",
+	"sourceSystemKey": "Dealer",
+	"originType": "ExternalClient"
+}
+
+###
+
+### Create contact for Polaris from an internal KulaHub action
+POST {{KulaHub.Api_HostAddress}}/api/clients/3/contacts
+Content-Type: application/json
+Accept: application/json
+
+{
+	"organisationId": null,
+	"firstName": "Jordan",
+	"lastName": "Internal12",
+	"email": "jordan.internal12@example.com",
+	"postcode": "EC1A 1BB",
 	"originType": "InternalApp"
 }
 
 ###
 
 ### List contacts for Dealer after creating one
-GET {{KulaHub.Api_HostAddress}}/api/clients/{{outboundClientId}}/contacts
+GET {{KulaHub.Api_HostAddress}}/api/clients/{{clientId}}/contacts
 Accept: application/json
 
 ###

@@ -11,7 +11,7 @@ public sealed class PolarisOutboundConsumerFunction(
 {
     [Function("PolarisOutboundConsumer")]
     public async Task RunAsync(
-        [ServiceBusTrigger(ProcessingOptions.PolarisOutboundQueueSetting, Connection = "ServiceBusConnection")]
+        [ServiceBusTrigger(ProcessingOptions.PolarisContactExportQueueSetting, Connection = "ServiceBusConnection")]
         string message,
         CancellationToken cancellationToken)
     {
@@ -38,7 +38,7 @@ public sealed class PolarisOutboundConsumerFunction(
             payload.IntegrationEntryId,
             payload.ClientId,
             (int)response.StatusCode);
-        await processingService.CompleteOutboundAsync(payload.IntegrationEntryId, cancellationToken);
-        logger.LogInformation("Completed outbound integration entry {IntegrationEntryId} for client {ClientId}.", payload.IntegrationEntryId, payload.ClientId);
+        await processingService.CompleteDispatchAsync(payload.IntegrationEntryId, cancellationToken);
+        logger.LogInformation("Completed integration dispatch entry {IntegrationEntryId} for client {ClientId}.", payload.IntegrationEntryId, payload.ClientId);
     }
 }

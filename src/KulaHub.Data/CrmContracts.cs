@@ -12,6 +12,13 @@ public enum OriginType
     System
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum IntegrationDisposition
+{
+    Inbound,
+    Outbound
+}
+
 public sealed record ClientLookupDto(int ClientId, string Name);
 
 public sealed record LookupOptionDto(int Id, string Name);
@@ -54,9 +61,10 @@ public sealed record CreateContactCommand(
     string? FirstName,
     string? LastName,
     string? Email,
-    string? Postcode);
+    string? Postcode,
+    string? SourceSystemKey = null);
 
-public sealed record AddNoteCommand(int ClientId, int ContactId, string Content);
+public sealed record AddNoteCommand(int ClientId, int ContactId, string Content, string? SourceSystemKey = null);
 
 public sealed record CreateContactFormCommand(
     int ClientId,
@@ -66,7 +74,8 @@ public sealed record CreateContactFormCommand(
     string? Text2,
     string? Text3,
     DateTime? DateTime1,
-    DateTime? DateTime2);
+    DateTime? DateTime2,
+    string? SourceSystemKey = null);
 
 public sealed record CreateContactResult(int ContactId);
 

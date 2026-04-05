@@ -12,8 +12,7 @@ public sealed class KulaHubDbContext(DbContextOptions<KulaHubDbContext> options)
     public DbSet<FormType> FormTypes => Set<FormType>();
     public DbSet<Form> Forms => Set<Form>();
     public DbSet<IntegrationInboxEntry> IntegrationInbox => Set<IntegrationInboxEntry>();
-    public DbSet<IntegrationOutboundEntry> IntegrationOutbound => Set<IntegrationOutboundEntry>();
-    public DbSet<IntegrationInboundEntry> IntegrationInbound => Set<IntegrationInboundEntry>();
+    public DbSet<IntegrationDispatchEntry> IntegrationDispatch => Set<IntegrationDispatchEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -120,43 +119,34 @@ public sealed class KulaHubDbContext(DbContextOptions<KulaHubDbContext> options)
             entity.ToTable("IntegrationInbox", "dbo");
             entity.HasKey(x => x.Id);
             entity.HasIndex(x => x.ClientId).HasDatabaseName("IX_IntegrationInbox_ClientId");
+            entity.HasIndex(x => x.SourceSystemKey).HasDatabaseName("IX_IntegrationInbox_SourceSystemKey");
             entity.HasIndex(x => new { x.ProcessedUtc, x.ReceivedUtc }).HasDatabaseName("IX_IntegrationInbox_Unprocessed");
             entity.Property(x => x.CorrelationId).HasMaxLength(32);
             entity.Property(x => x.TraceParent).HasMaxLength(55);
             entity.Property(x => x.OriginType).HasConversion<string>().HasMaxLength(50);
+            entity.Property(x => x.SourceSystemKey).HasMaxLength(100);
             entity.Property(x => x.EntityType).HasMaxLength(100);
             entity.Property(x => x.EventType).HasMaxLength(100);
             entity.Property(x => x.ChangeType).HasMaxLength(50);
             entity.Property(x => x.ExternalEntityId).HasMaxLength(100);
         });
 
-        modelBuilder.Entity<IntegrationOutboundEntry>(entity =>
+        modelBuilder.Entity<IntegrationDispatchEntry>(entity =>
         {
-            entity.ToTable("IntegrationOutbound", "dbo");
+            entity.ToTable("IntegrationDispatch", "dbo");
             entity.HasKey(x => x.Id);
-            entity.HasIndex(x => x.ClientId).HasDatabaseName("IX_IntegrationOutbound_ClientId");
-            entity.HasIndex(x => new { x.ProcessedUtc, x.ReceivedUtc }).HasDatabaseName("IX_IntegrationOutbound_Unprocessed");
-            entity.HasIndex(x => new { x.DispatchedUtc, x.ReceivedUtc }).HasDatabaseName("IX_IntegrationOutbound_Undispatched");
+            entity.HasIndex(x => x.ClientId).HasDatabaseName("IX_IntegrationDispatch_ClientId");
+            entity.HasIndex(x => x.IntegrationInboxId).HasDatabaseName("IX_IntegrationDispatch_InboxId");
+            entity.HasIndex(x => x.QueueKey).HasDatabaseName("IX_IntegrationDispatch_QueueKey");
+            entity.HasIndex(x => x.SourceSystemKey).HasDatabaseName("IX_IntegrationDispatch_SourceSystemKey");
+            entity.HasIndex(x => new { x.ProcessedUtc, x.ReceivedUtc }).HasDatabaseName("IX_IntegrationDispatch_Unprocessed");
+            entity.HasIndex(x => new { x.DispatchedUtc, x.ReceivedUtc }).HasDatabaseName("IX_IntegrationDispatch_Undispatched");
             entity.Property(x => x.CorrelationId).HasMaxLength(32);
             entity.Property(x => x.TraceParent).HasMaxLength(55);
+            entity.Property(x => x.Disposition).HasConversion<string>().HasMaxLength(50);
             entity.Property(x => x.OriginType).HasConversion<string>().HasMaxLength(50);
-            entity.Property(x => x.EntityType).HasMaxLength(100);
-            entity.Property(x => x.EventType).HasMaxLength(100);
-            entity.Property(x => x.ChangeType).HasMaxLength(50);
-            entity.Property(x => x.ExternalEntityId).HasMaxLength(100);
-            entity.Property(x => x.DispatchTarget).HasMaxLength(200);
-        });
-
-        modelBuilder.Entity<IntegrationInboundEntry>(entity =>
-        {
-            entity.ToTable("IntegrationInbound", "dbo");
-            entity.HasKey(x => x.Id);
-            entity.HasIndex(x => x.ClientId).HasDatabaseName("IX_IntegrationInbound_ClientId");
-            entity.HasIndex(x => new { x.ProcessedUtc, x.ReceivedUtc }).HasDatabaseName("IX_IntegrationInbound_Unprocessed");
-            entity.HasIndex(x => new { x.DispatchedUtc, x.ReceivedUtc }).HasDatabaseName("IX_IntegrationInbound_Undispatched");
-            entity.Property(x => x.CorrelationId).HasMaxLength(32);
-            entity.Property(x => x.TraceParent).HasMaxLength(55);
-            entity.Property(x => x.OriginType).HasConversion<string>().HasMaxLength(50);
+            entity.Property(x => x.SourceSystemKey).HasMaxLength(100);
+            entity.Property(x => x.QueueKey).HasMaxLength(100);
             entity.Property(x => x.EntityType).HasMaxLength(100);
             entity.Property(x => x.EventType).HasMaxLength(100);
             entity.Property(x => x.ChangeType).HasMaxLength(50);
