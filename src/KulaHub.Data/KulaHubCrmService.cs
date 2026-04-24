@@ -306,6 +306,35 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
         return new CreateFormResult(form.FormId);
     }
 
+    public async Task<SubmitFeedbackResult> SubmitFeedbackAsync(SubmitFeedbackCommand command, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(command.Name))
+        {
+            throw new InvalidOperationException("A name is required to submit feedback.");
+        }
+
+        if (string.IsNullOrWhiteSpace(command.Comments))
+        {
+            throw new InvalidOperationException("Comments are required to submit feedback.");
+        }
+
+        var createdUtc = DateTime.UtcNow;
+
+        var feedback = new Entities.Feedback
+        {
+            Name = command.Name.Trim(),
+            Email = TrimToNull(command.Email),
+            Comments = command.Comments.Trim(),
+            CreatedUtc = createdUtc,
+            CreatedBy = "WebFeedback"
+        };
+
+        dbContext.Feedbacks.Add(feedback);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new SubmitFeedbackResult(feedback.FeedbackId);
+    }
+
     private void AddInboxEntry(int clientId, string entityType, string eventType, string changeType, object payload, OriginType originType, DateTime receivedUtc, string? sourceSystemKey = null)
     {
         var traceContext = GetTraceContext();

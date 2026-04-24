@@ -78,6 +78,16 @@ Represents forms that can be added to a contact or organisation to store custom 
 | DateTime2 | datetime2 | Yes | | | |
 | OriginalFormId | int | Yes | Logical reference → Forms.FormId | | Tracks the source form for mirrored copies |
 
+### Feedback
+Stores feedback submitted by users via the Feedback page.
+
+| Column | Type | Nullable | Key | Default | Notes |
+|------|------|------|------|------|------|
+| FeedbackId | int | No | PK | IDENTITY(1,1) | Primary key |
+| Name | nvarchar(100) | No | | | Submitter's name |
+| Email | nvarchar(60) | Yes | | | Submitter's email address |
+| Comments | nvarchar(max) | No | | | Feedback comments |
+
 ### FormMirrorRules - IGNORE FOR NOW
 Represents rules for mirroring a form from one client/form type combination to another.
 | Column | Type | Nullable | Key | Default | Notes |

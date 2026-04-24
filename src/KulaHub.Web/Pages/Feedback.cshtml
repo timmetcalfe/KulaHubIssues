@@ -1,0 +1,57 @@
+@page
+@model KulaHub.Web.Pages.FeedbackModel
+@{
+    ViewData["Title"] = "Feedback";
+}
+
+<div class="page-header">
+    <div>
+        <h1>Feedback</h1>
+        <p class="lede">Share your thoughts with us. We'd love to hear from you.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        @if (Model.Submitted)
+        {
+            <div class="alert alert-success" role="alert">
+                Thank you for your feedback!
+            </div>
+        }
+        else
+        {
+            <div class="panel">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Input.Name" class="form-label"></label>
+                            <input asp-for="Input.Name" class="form-control" />
+                            <span asp-validation-for="Input.Name" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Input.Email" class="form-label"></label>
+                            <input asp-for="Input.Email" class="form-control" />
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Input.Comments" class="form-label"></label>
+                            <textarea asp-for="Input.Comments" class="form-control" rows="5"></textarea>
+                            <span asp-validation-for="Input.Comments" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Submit feedback</button>
+                        <a class="btn btn-outline-secondary" asp-page="/Index">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

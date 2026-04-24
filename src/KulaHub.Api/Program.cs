@@ -27,5 +27,6 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }))
     .WithName("GetHealth");
 
 app.MapContactEndpoints();
+app.MapFeedbackEndpoints();
 
 app.Run();

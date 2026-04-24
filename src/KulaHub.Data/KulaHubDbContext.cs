@@ -13,6 +13,7 @@ public sealed class KulaHubDbContext(DbContextOptions<KulaHubDbContext> options)
     public DbSet<Form> Forms => Set<Form>();
     public DbSet<IntegrationInboxEntry> IntegrationInbox => Set<IntegrationInboxEntry>();
     public DbSet<IntegrationDispatchEntry> IntegrationDispatch => Set<IntegrationDispatchEntry>();
+    public DbSet<Feedback> Feedbacks => Set<Feedback>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -152,6 +153,16 @@ public sealed class KulaHubDbContext(DbContextOptions<KulaHubDbContext> options)
             entity.Property(x => x.ChangeType).HasMaxLength(50);
             entity.Property(x => x.ExternalEntityId).HasMaxLength(100);
             entity.Property(x => x.DispatchTarget).HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<Feedback>(entity =>
+        {
+            entity.ToTable("Feedback", "dbo");
+            entity.HasKey(x => x.FeedbackId);
+            entity.Property(x => x.Name).HasMaxLength(100);
+            entity.Property(x => x.Email).HasMaxLength(60);
+            entity.Property(x => x.CreatedBy).HasMaxLength(100);
+            entity.Property(x => x.ModifiedBy).HasMaxLength(100);
         });
     }
 }
