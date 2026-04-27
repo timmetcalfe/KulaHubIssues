@@ -99,6 +99,11 @@ Stores feedback submitted via the Feedback page form.
 | Name | nvarchar(100) | No | | | Submitter's name |
 | Email | nvarchar(200) | No | | | Submitter's email address |
 | Comments | nvarchar(max) | No | | | Free-text feedback comments |
+| CreatedUtc | datetime2 | No | | | When the feedback was submitted |
+| CreatedBy | nvarchar(100) | No | | | Origin of submission |
+| ModifiedUtc | datetime2 | Yes | | | |
+| ModifiedBy | nvarchar(100) | Yes | | | |
+| DeletedUtc | datetime2 | Yes | | | Soft delete timestamp |
 
 ### IntegrationInbox
 For storing details of changes to rows in certain tables that can be read by a background process to maybe call 3rd party APIs with the changes.

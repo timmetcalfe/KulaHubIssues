@@ -325,6 +325,8 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
 
         var createdUtc = DateTime.UtcNow;
 
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
         var feedback = new Entities.Feedback
         {
             Name = command.Name.Trim(),
@@ -336,6 +338,7 @@ public sealed class KulaHubCrmService(KulaHubDbContext dbContext) : IKulaHubCrmS
 
         dbContext.Feedback.Add(feedback);
         await dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return new SubmitFeedbackResult(feedback.FeedbackId);
     }
