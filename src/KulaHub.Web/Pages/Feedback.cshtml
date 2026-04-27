@@ -1,0 +1,54 @@
+@page
+@model KulaHub.Web.Pages.FeedbackModel
+@{
+    ViewData["Title"] = "Feedback";
+}
+
+<div class="page-header">
+    <div>
+        <p class="eyebrow">KulaHub CRM</p>
+        <h1>Feedback</h1>
+        <p class="lede">We value your feedback. Please fill in the form below and submit your comments.</p>
+    </div>
+</div>
+
+@if (Model.Submitted)
+{
+    <div class="alert alert-success" role="alert">
+        Thank you for your feedback!
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="panel">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <div class="mb-3">
+                        <label asp-for="Input.Name" class="form-label"></label>
+                        <input asp-for="Input.Name" class="form-control" />
+                        <span asp-validation-for="Input.Name" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Input.Email" class="form-label"></label>
+                        <input asp-for="Input.Email" class="form-control" type="email" />
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Input.Comments" class="form-label"></label>
+                        <textarea asp-for="Input.Comments" class="form-control" rows="5"></textarea>
+                        <span asp-validation-for="Input.Comments" class="text-danger"></span>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">Submit feedback</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

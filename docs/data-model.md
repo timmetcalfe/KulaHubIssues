@@ -90,6 +90,16 @@ Represents rules for mirroring a form from one client/form type combination to a
 | TargetPlaceholderOrganisationId | int | No | FK → Organisations.OrganisationId | | Placeholder organisation to assign mirrored forms to |
 | IsActive | bit | No | | 1 | Enables or disables the mirroring rule |
 
+### Feedback
+Stores feedback submitted via the Feedback page form.
+
+| Column | Type | Nullable | Key | Default | Notes |
+|------|------|------|------|------|------|
+| FeedbackId | int | No | PK | IDENTITY(1,1) | Primary key |
+| Name | nvarchar(100) | No | | | Submitter's name |
+| Email | nvarchar(200) | No | | | Submitter's email address |
+| Comments | nvarchar(max) | No | | | Free-text feedback comments |
+
 ### IntegrationInbox
 For storing details of changes to rows in certain tables that can be read by a background process to maybe call 3rd party APIs with the changes.
 

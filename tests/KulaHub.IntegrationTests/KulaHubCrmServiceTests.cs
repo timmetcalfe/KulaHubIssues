@@ -99,4 +99,42 @@ public sealed class KulaHubCrmServiceTests : IAsyncLifetime
         Assert.Equal("Note", inboxEntries[1].EntityType);
         Assert.Equal("Note.Created", inboxEntries[1].EventType);
     }
+
+    [Fact]
+    public async Task SubmitFeedbackAsync_PersistsFeedbackRow()
+    {
+        var result = await crmService.SubmitFeedbackAsync(
+            new SubmitFeedbackCommand("Jane Smith", "jane.smith@example.com", "Great product!"));
+
+        var feedback = await dbContext.Feedback.SingleAsync(item => item.FeedbackId == result.FeedbackId);
+
+        Assert.Equal("Jane Smith", feedback.Name);
+        Assert.Equal("jane.smith@example.com", feedback.Email);
+        Assert.Equal("Great product!", feedback.Comments);
+        Assert.Equal("FeedbackForm", feedback.CreatedBy);
+    }
+
+    [Fact]
+    public async Task SubmitFeedbackAsync_ThrowsWhenNameIsMissing()
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            crmService.SubmitFeedbackAsync(
+                new SubmitFeedbackCommand("", "jane@example.com", "Comments")));
+    }
+
+    [Fact]
+    public async Task SubmitFeedbackAsync_ThrowsWhenEmailIsMissing()
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            crmService.SubmitFeedbackAsync(
+                new SubmitFeedbackCommand("Jane", "", "Comments")));
+    }
+
+    [Fact]
+    public async Task SubmitFeedbackAsync_ThrowsWhenCommentsAreMissing()
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            crmService.SubmitFeedbackAsync(
+                new SubmitFeedbackCommand("Jane", "jane@example.com", "")));
+    }
 }
