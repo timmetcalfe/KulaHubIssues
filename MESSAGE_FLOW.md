@@ -12,7 +12,7 @@ flowchart TD
 
     F --> G[ProcessIntegrationInbox timer function<br/>every minute at second 0]
     G --> H[IntegrationProcessingService.ProcessInboxAsync]
-    H --> I{Routing rule match<br/>ClientId + OriginType (+ optional SourceSystemKey)}
+    H --> I{Routing rule match<br/>ClientId + OriginType<br/>+ optional SourceSystemKey}
 
     I -->|QueueKey matched| J[Create IntegrationDispatch row<br/>Disposition + QueueKey]
     I -->|No match| K[Mark IntegrationInbox row processed<br/>log ignored]
@@ -28,9 +28,9 @@ flowchart TD
     P --> R[DealerInternalConsumer<br/>or Polaris consumer trigger]
     R --> S[CompleteDispatchAsync<br/>mark IntegrationDispatch.ProcessedUtc]
 
-    T[Current configured examples] --> U[ClientId 4 + InternalApp -> DealerContactMirror]
-    T --> V[ClientId 3 + InternalApp -> PolarisContactExport]
-    T --> W[ClientId 3 + ExternalClient -> PolarisImportProcessing]
+    T[Current configured examples] --> U[ClientId 4 + InternalApp → DealerContactMirror]
+    T --> V[ClientId 3 + InternalApp → PolarisContactExport]
+    T --> W[ClientId 3 + ExternalClient → PolarisImportProcessing]
 ```
 
 ## Notes

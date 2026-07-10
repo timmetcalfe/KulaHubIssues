@@ -58,9 +58,9 @@ public sealed class DealerContactMirrorService(
             PolarisClientId);
     }
 
-    private async Task<bool> PolarisContactAlreadyExistsAsync(MirroredContactPayload contactPayload, CancellationToken cancellationToken)
+    private Task<bool> PolarisContactAlreadyExistsAsync(MirroredContactPayload contactPayload, CancellationToken cancellationToken)
     {
-        return await dbContext.Contacts
+        return dbContext.Contacts
             .AsNoTracking()
             .AnyAsync(
                 contact => contact.ClientId == PolarisClientId

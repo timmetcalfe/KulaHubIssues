@@ -15,10 +15,10 @@ public sealed class CreateModel(IKulaHubCrmService crmService) : PageModel
     [BindProperty]
     public CreateContactInput Input { get; set; } = new();
 
-    public async Task OnGetAsync(int clientId, CancellationToken cancellationToken)
+    public Task OnGetAsync(int clientId, CancellationToken cancellationToken)
     {
         ClientId = clientId;
-        await LoadOptionsAsync(cancellationToken);
+        return LoadOptionsAsync(cancellationToken);
     }
 
     public async Task<IActionResult> OnPostAsync(int clientId, CancellationToken cancellationToken)

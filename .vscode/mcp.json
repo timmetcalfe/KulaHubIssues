@@ -1,0 +1,19 @@
+{
+  "servers": {
+    "ado-remote-mcp": {
+      "url": "https://mcp.dev.azure.com/metsoft",
+      "type": "http",
+      "headers": {
+        "X-MCP-Toolsets": "repos,wiki,wit",
+        "X-MCP-Readonly": "true"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "id": "ado_org",
+      "type": "promptString",
+      "description": "Azure DevOps organization name  (e.g. 'contoso')"
+    }
+  ]
+}

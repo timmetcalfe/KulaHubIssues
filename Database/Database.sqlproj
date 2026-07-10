@@ -3,9 +3,10 @@
   <Sdk Name="Microsoft.Build.Sql" Version="2.1.0" />
   <PropertyGroup>
     <Name>Database</Name>
-    <ProjectGuid>{B9C89148-71D0-434A-972E-2FA7A4A676FA}</ProjectGuid>
+    <ProjectGuid>{b9c89148-71d0-434a-972e-2fa7a4a676fa}</ProjectGuid>
     <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
     <ModelCollation>1033, CI</ModelCollation>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
   </PropertyGroup>
   <Target Name="BeforeBuild">
     <Delete Files="$(BaseIntermediateOutputPath)\project.assets.json" />

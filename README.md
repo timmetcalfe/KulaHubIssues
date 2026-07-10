@@ -1,4 +1,4 @@
-# KulaHubIssues
+# DualWrite_APISync
 Work related to the issues KulaHub is experiencing
 
 ## API integration metadata
