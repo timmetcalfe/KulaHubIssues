@@ -1,3 +1,4 @@
+
 -- Create the Master Key with a password.
 -- CREATE MASTER KEY ENCRYPTION BY PASSWORD = 'Internet5&';
 
@@ -19,6 +20,10 @@
 -- EXEC sys.sp_add_object_to_event_stream_group
 --     N'myStreamGroupTest',
 --     N'dbo.Contacts'
+
+--*********************
+--See the scripts folder for the Powershell script to generate the token
+--********************
 
 CREATE DATABASE SCOPED CREDENTIAL TimTest2ForCES
     WITH IDENTITY = 'SHARED ACCESS SIGNATURE',
