@@ -1,165 +1,133 @@
 # Data Model
-This document describes the data models used in KulaHub.
+
+This document explains the intent of the KulaHub data model.
+
+## Source of truth
+
+The deployable database schema lives in the SQL project under the `Database` folder. Treat the SQL project as the authoritative source for tables, columns, indexes, constraints, and defaults.
+
+Relevant schema files include:
+
+- `Database/Clients.sql`
+- `Database/Organisations.sql`
+- `Database/Contacts.sql`
+- `Database/Notes.sql`
+- `Database/FormTypes.sql`
+- `Database/Forms.sql`
+- `Database/FormMirrorRules.sql`
+- `Database/IntegrationInbox.sql`
+- `Database/IntegrationDispatch.sql`
+
+Use this markdown file for:
+
+- business meaning of each entity
+- tenancy and ownership rules
+- integration flow semantics
+- notable invariants that are easy to miss when reading raw DDL
+
+Do not duplicate full column-by-column schema definitions here unless there is a strong reason to explain a specific field.
 
 ## Overview
-This system supports clients (tenants), organisations, contacts, notes, forms, and form mirror rules for a multi-tenant SaaS CRM application.
 
-## Conventions and assumptions
-- The database will be Azure SQL Server
-- All tables use `EntityId` as an `int IDENTITY(1,1)` PK unless otherwise stated, where Entity is the singular table name
-- All client-owned tables include `ClientId`
-- Soft delete uses `DeletedUtc`
-- Audit fields: `CreatedUtc`, `CreatedBy`, `ModifiedUtc`, `ModifiedBy`. Automatically include these when creating new tables, except for IntegrationInbox table.
+KulaHub is a multi-tenant CRM. The core model supports clients, organisations, contacts, notes, forms, and integration work items used to route changes to downstream processing.
 
-## Entities / Tables
+## Cross-cutting conventions
+
+- Azure SQL is the target database engine.
+- Most business tables use an `EntityId` identity primary key named after the entity, for example `ContactId` or `FormId`.
+- Client-owned data carries `ClientId` to enforce tenant ownership.
+- Most business tables support soft delete via `DeletedUtc`.
+- Most business tables include audit fields: `CreatedUtc`, `CreatedBy`, `ModifiedUtc`, `ModifiedBy`.
+- Integration tables are operational event tables and do not fully follow the same audit conventions as CRM entities.
+
+## Core CRM entities
 
 ### Clients
-Represents the organisations that are using the system. Each client will have many organisations, contacts and forms
 
-| Column | Type | Nullable | Key | Default | Notes |
-|------|------|------|------|------|------|
-| ClientId | int | No | PK | IDENTITY(1,1) | Primary key |
-| Name | nvarchar(200) | No | | | Display name |
-| Postcode | nvarchar(12) | Yes | | | |
+Represents a tenant using the CRM system. A client owns organisations, contacts, form types, forms, and integration records.
 
 ### Organisations
-Represent the organisations that a client is dealing with.
 
-| Column | Type | Nullable | Key | Default | Notes |
-|------|------|------|------|------|------|
-| OrganisationId | int | No | PK | IDENTITY(1,1) | Primary key |
-| ClientId | int | No | FK → Clients.ClientId | | Client owner |
-| Name | nvarchar(100) | No | | | Display name |
-| Postcode | nvarchar(12) | Yes | | | |
+Represents an organisation that belongs to a client. Organisations group contacts and can also own forms.
 
 ### Contacts
-Represents the contacts of the CRM system
-| Column | Type | Nullable | Key | Default | Notes |
-|------|------|------|------|------|------|
-| ContactId | int | No | PK | IDENTITY(1,1) | Primary key |
-| ClientId | int | No | FK → Clients.ClientId | | Client owner |
-| SourceContactId | int | Yes | Logical reference → Contacts.ContactId | | Source contact id used for mirrored contacts such as Dealer to Polaris copies |
-| OrganisationId | int | Yes | FK → Organisations.OrganisationId | | Organisation owner |
-| FirstName | nvarchar(50) | Yes | | | |
-| LastName | nvarchar(50) | Yes | | | |
-| Email | nvarchar(60) | Yes | | | |
-| Postcode | nvarchar(12) | Yes | | | |
+
+Represents a person within a client tenant. A contact may optionally belong to an organisation.
+
+`SourceContactId` is a logical self-reference used when one client mirrors a contact from another workflow, such as Dealer to Polaris synchronisation.
 
 ### Notes
-Represents free-text notes attached to a contact.
-| Column | Type | Nullable | Key | Default | Notes |
-|------|------|------|------|------|------|
-| NoteId | int | No | PK | IDENTITY(1,1) | Primary key |
-| ClientId | int | No | FK → Clients.ClientId | | Client owner |
-| ContactId | int | No | FK → Contacts.ContactId | | Contact owner |
-| Content | nvarchar(max) | No | | | Note body |
+
+Represents free-text notes attached to a contact. Notes are client-owned and always associated with a contact.
 
 ### FormTypes
-Represents the definition form forms
-| Column | Type | Nullable | Key | Default | Notes |
-|------|------|------|------|------|------|
-| FormTypeId | int | No | PK | IDENTITY(1,1) | Primary key |
-| ClientId | int | No | FK → Clients.ClientId | | Client owner |
-| Name | nvarchar(max) | Yes | | | |
+
+Represents a client-defined form definition. A form type describes the kind of form a tenant can attach to contacts or organisations.
 
 ### Forms
-Represents forms that can be added to a contact or organisation to store custom information
-| Column | Type | Nullable | Key | Default | Notes |
-|------|------|------|------|------|------|
-| FormId | int | No | PK | IDENTITY(1,1) | Primary key |
-| ClientId | int | No | FK → Clients.ClientId | | Client owner |
-| FormTypeId | int | No | FK → FormTypes.FormTypeId | | The FormType definition |
-| OrganisationId | int | Yes | FK → Organisations.OrganisationId | | Organisation owner |
-| ContactId | int | Yes | FK → Contacts.ContactId | | Contact owner |
-| Text1 | nvarchar(max) | Yes | | | |
-| Text2 | nvarchar(max) | Yes | | | |
-| Text3 | nvarchar(max) | Yes | | | Additional free-text slot |
-| DateTime1 | datetime2 | Yes | | | |
-| DateTime2 | datetime2 | Yes | | | |
-| OriginalFormId | int | Yes | Logical reference → Forms.FormId | | Tracks the source form for mirrored copies |
 
-### FormMirrorRules - IGNORE FOR NOW
-Represents rules for mirroring a form from one client/form type combination to another.
-| Column | Type | Nullable | Key | Default | Notes |
-|------|------|------|------|------|------|
-| FormMirrorRuleId | int | No | PK | IDENTITY(1,1) | Primary key |
-| SourceClientId | int | No | Logical reference → Clients.ClientId | | Client that owns the source form |
-| SourceFormTypeId | int | No | Logical reference → FormTypes.FormTypeId | | Form type to mirror from |
-| TargetClientId | int | No | Logical reference → Clients.ClientId | | Client that receives the mirrored form |
-| TargetFormTypeId | int | No | Logical reference → FormTypes.FormTypeId | | Form type to mirror to |
-| TargetPlaceholderOrganisationId | int | No | FK → Organisations.OrganisationId | | Placeholder organisation to assign mirrored forms to |
-| IsActive | bit | No | | 1 | Enables or disables the mirroring rule |
+Represents a concrete form instance. A form belongs to one client and one form type, and it must be attached to either:
+
+- an organisation, or
+- a contact
+
+The SQL schema enforces that a form cannot exist without at least one owner.
+
+`OriginalFormId` is a logical self-reference used to track mirrored copies of a source form.
+
+### FormMirrorRules
+
+Represents rules for mirroring forms between clients. This area is currently present in the schema but not yet a primary implementation focus.
+
+## Integration entities
 
 ### IntegrationInbox
-For storing details of changes to rows in certain tables that can be read by a background process to maybe call 3rd party APIs with the changes.
 
-| Column | Type | Nullable | Key | Default | Notes |
-|------|------|------|------|------|------|
-| Id | bigint | No | PK | IDENTITY(1,1) | Primary key |
-| CorrelationId | nvarchar(32) | Yes | | | Shared identifier used to trace a related integration flow across inbox, inbound, and outbound records |
-| TraceParent | nvarchar(55) | Yes | | | W3C traceparent value preserved so downstream dispatch can reuse the original parent span |
-| ClientId | int | No | | | Client owner |
-| OriginType | nvarchar(50) | No | | | Captures whether the event originated externally or internally |
-| SourceSystemKey | nvarchar(100) | Yes | | | Optional external system identifier used for routing and loop prevention |
-| EntityType | nvarchar(100) | No | | | Source entity/table name |
-| EventType | nvarchar(100) | No | | | Event category for downstream handling |
-| ChangeType | nvarchar(50) | No | | | Type of change captured for the event |
-| ExternalEntityId | nvarchar(100) | Yes | | | External system identifier when applicable |
-| PayloadJson | nvarchar(max) | No | | | Raw payload captured for downstream processing |
-| ReceivedUtc | datetime2 | No | | SYSUTCDATETIME() | When the change was received |
-| ProcessedUtc | datetime2 | Yes | | | When the inbox event has been classified and routed or ignored |
+Stores captured change events before the system decides what to do with them. This is the intake point for integration processing.
+
+Important concepts:
+
+- `OriginType` distinguishes internal versus external origin.
+- `SourceSystemKey` supports routing and loop prevention.
+- `CorrelationId` and `TraceParent` preserve distributed tracing context.
+- `ProcessedUtc` marks whether the event has already been classified.
 
 ### IntegrationDispatch
-For storing routed integration work items that are ready to be dispatched to a queue or have been completed by a queue consumer.
 
-| Column | Type | Nullable | Key | Default | Notes |
-|------|------|------|------|------|------|
-| Id | bigint | No | PK | IDENTITY(1,1) | Primary key |
-| IntegrationInboxId | bigint | No | Logical reference → IntegrationInbox.Id | | The source inbox event that produced this dispatch row |
-| CorrelationId | nvarchar(32) | Yes | | | Shared identifier used to trace a related integration flow across inbox, inbound, and outbound records |
-| TraceParent | nvarchar(55) | Yes | | | W3C traceparent value preserved from the originating request for downstream message correlation |
-| ClientId | int | No | | | Client owner |
-| Disposition | nvarchar(50) | No | | | Logical routing classification such as Inbound or Outbound |
-| OriginType | nvarchar(50) | No | | | Original origin classification copied from IntegrationInbox |
-| SourceSystemKey | nvarchar(100) | Yes | | | Optional external system identifier copied from IntegrationInbox |
-| QueueKey | nvarchar(100) | No | | | Logical routing output used to resolve a physical queue binding |
-| EntityType | nvarchar(100) | No | | | Source entity/table name |
-| EventType | nvarchar(100) | No | | | Event category for downstream handling |
-| ChangeType | nvarchar(50) | No | | | Type of change captured for the event |
-| ExternalEntityId | nvarchar(100) | Yes | | | External system identifier when applicable |
-| PayloadJson | nvarchar(max) | No | | | Raw payload captured for downstream processing |
-| ReceivedUtc | datetime2 | No | | SYSUTCDATETIME() | When the change was received |
-| DispatchedUtc | datetime2 | Yes | | | When the event was dispatched to Service Bus |
-| DispatchTarget | nvarchar(200) | Yes | | | Queue or topic name used for dispatch |
-| ProcessedUtc | datetime2 | Yes | | | When downstream processing completed |
+Stores routed work items that are ready for queue dispatch or have already been processed by downstream consumers.
 
+Important concepts:
 
-## Relationships
-| From | To | Type | Notes |
-|---|---|---|---|
-| Organisations.ClientId | Clients.ClientId | Many-to-One | An organisation belongs to one client |
-| Contacts.ClientId | Clients.ClientId | Many-to-One | A contact belongs to one client |
-| Contacts.OrganisationId | Organisations.OrganisationId | Many-to-One | A contact optionally belongs to one organisation |
-| Notes.ClientId | Clients.ClientId | Many-to-One | A note belongs to one client |
-| Notes.ContactId | Contacts.ContactId | Many-to-One | A note belongs to one contact |
-| FormTypes.ClientId | Clients.ClientId | Many-to-One | A form type belongs to one client |
-| Forms.ClientId | Clients.ClientId | Many-to-One | A form belongs to one client |
-| Forms.FormTypeId | FormTypes.FormTypeId | Many-to-One | A form references one form type definition |
-| Forms.OrganisationId | Organisations.OrganisationId | Many-to-One | A form optionally belongs to one organisation |
-| Forms.ContactId | Contacts.ContactId | Many-to-One | A form optionally belongs to one contact |
+- `IntegrationInboxId` links dispatch work back to the originating inbox event.
+- `Disposition` captures the routing class, such as inbound or outbound.
+- `QueueKey` is the logical routing output used to resolve the actual queue.
+- `DispatchedUtc` marks queue publication.
+- `ProcessedUtc` marks downstream completion.
 
-## Indexes
-| Index Name | Table | Columns | Notes |
-|---|---|---|---|
-| IX_Organisations_ClientId | Organisations | ClientId | Filter organisations by client |
-| IX_Contacts_ClientId | Contacts | ClientId | Filter contacts by client |
-| IX_Contacts_SourceContactId | Contacts | ClientId, SourceContactId | Find mirrored contacts by their source contact id within a client |
-| IX_Contacts_Email | Contacts | ClientId, Email | Look up contacts by email address within a client; filtered where Email IS NOT NULL |
-| IX_Contacts_OrganisationId | Contacts | OrganisationId | Filter contacts by organisation |
-| IX_Notes_ClientId | Notes | ClientId | Filter notes by client |
-| IX_Notes_ContactId | Notes | ContactId | Filter notes by contact |
-| IX_FormTypes_ClientId | FormTypes | ClientId | Filter form types by client |
-| IX_Forms_ClientId | Forms | ClientId | Filter forms by client |
-| IX_Forms_FormTypeId | Forms | FormTypeId | Filter forms by form type |
-| IX_Forms_OrganisationId | Forms | OrganisationId | Filter forms by organisation |
-| IX_Forms_ContactId | Forms | ContactId | Filter forms by contact |
+## Relationship summary
+
+- A client owns many organisations.
+- A client owns many contacts.
+- An organisation optionally owns many contacts.
+- A client owns many notes.
+- A contact owns many notes.
+- A client owns many form types.
+- A client owns many forms.
+- A form type owns many forms.
+- An organisation may own many forms.
+- A contact may own many forms.
+- An inbox event may produce zero or more dispatch records.
+
+## Operational notes
+
+- The SQL schema includes indexes and constraints that are intentionally not repeated here. Check the SQL files when changing query patterns or deployment shape.
+- Filtered indexes exist on some nullable lookup fields and on unprocessed integration work to support polling functions efficiently.
+- Some relationships are kept as logical references in the integration model instead of enforced foreign keys, which keeps ingestion and dispatch flows tolerant of external or staged data.
+
+## Change policy
+
+When changing the data model:
+
+1. Update the SQL project first.
+2. Update this document only if the business meaning, workflow semantics, or important invariants have changed.
+3. Do not restate the full schema here unless the explanation adds architectural value.
