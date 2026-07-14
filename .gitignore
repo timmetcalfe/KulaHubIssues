@@ -58,3 +58,10 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+# Playwright test artifacts
+tests/KulaHub.PlaywrightTests/node_modules/
+tests/KulaHub.PlaywrightTests/test-results/
+tests/KulaHub.PlaywrightTests/playwright-report/
+
+# Playwright CLI session files
+.playwright-cli/

@@ -1,5 +1,6 @@
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using KulaHub.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 var appInsightsConnectionString =
@@ -17,6 +18,16 @@ if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
 
 var app = builder.Build();
 
+// Ensure SQLite database is created when running with a SQLite connection string
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<KulaHubDbContext>();
+    if (db.Database.IsSqlite())
+    {
+        db.Database.EnsureCreated();
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -25,7 +36,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsEnvironment("UITest"))
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseRouting();
 

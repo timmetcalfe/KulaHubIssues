@@ -83,6 +83,10 @@ public sealed record CreateNoteResult(int NoteId);
 
 public sealed record CreateFormResult(int FormId);
 
+public sealed record SubmitFeedbackCommand(string Name, string Email, string Comments);
+
+public sealed record SubmitFeedbackResult(int FeedbackId);
+
 public interface IKulaHubCrmService
 {
     Task<IReadOnlyList<ClientLookupDto>> GetClientsAsync(CancellationToken cancellationToken = default);
@@ -93,4 +97,5 @@ public interface IKulaHubCrmService
     Task<CreateContactResult> CreateContactAsync(CreateContactCommand command, OriginType originType, CancellationToken cancellationToken = default);
     Task<CreateNoteResult> AddNoteAsync(AddNoteCommand command, OriginType originType, CancellationToken cancellationToken = default);
     Task<CreateFormResult> CreateContactFormAsync(CreateContactFormCommand command, OriginType originType, CancellationToken cancellationToken = default);
+    Task<SubmitFeedbackResult> SubmitFeedbackAsync(SubmitFeedbackCommand command, CancellationToken cancellationToken = default);
 }

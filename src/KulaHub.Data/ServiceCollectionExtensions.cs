@@ -17,7 +17,18 @@ public static class ServiceCollectionExtensions
                 "A database connection string named 'KulaHubDatabase' or the KULAHUB_DATABASE_CONNECTION_STRING setting is required.");
         }
 
-        services.AddDbContext<KulaHubDbContext>(options => options.UseSqlServer(connectionString));
+        services.AddDbContext<KulaHubDbContext>(options =>
+        {
+            if (connectionString.TrimStart().StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
+            {
+                options.UseSqlite(connectionString);
+            }
+            else
+            {
+                options.UseSqlServer(connectionString);
+            }
+        });
+
         services.AddScoped<IKulaHubCrmService, KulaHubCrmService>();
 
         return services;

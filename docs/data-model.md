@@ -81,6 +81,21 @@ Represents rules for mirroring forms between clients. This area is currently pre
 
 ## Integration entities
 
+### Feedback
+Stores feedback submitted via the Feedback page form.
+
+| Column | Type | Nullable | Key | Default | Notes |
+|------|------|------|------|------|------|
+| FeedbackId | int | No | PK | IDENTITY(1,1) | Primary key |
+| Name | nvarchar(100) | No | | | Submitter's name |
+| Email | nvarchar(200) | No | | | Submitter's email address |
+| Comments | nvarchar(max) | No | | | Free-text feedback comments |
+| CreatedUtc | datetime2 | No | | | When the feedback was submitted |
+| CreatedBy | nvarchar(100) | No | | | Origin of submission |
+| ModifiedUtc | datetime2 | Yes | | | |
+| ModifiedBy | nvarchar(100) | Yes | | | |
+| DeletedUtc | datetime2 | Yes | | | Soft delete timestamp |
+
 ### IntegrationInbox
 
 Stores captured change events before the system decides what to do with them. This is the intake point for integration processing.
